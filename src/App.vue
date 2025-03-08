@@ -4,12 +4,23 @@
     <main class="main">
       <RouterView />
     </main>
+    <ConnectWalletModal v-model="showConnectModal" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { RouterView } from 'vue-router';
-import Sidebar from './components/Sidebar.vue';
+import { RouterView } from "vue-router";
+import { computed } from "vue";
+import Sidebar from "./components/Sidebar.vue";
+import ConnectWalletModal from "./components/ConnectWalletModal.vue";
+import { useUserContext } from "./composables/useUserContext";
+
+const { isLoggedIn } = useUserContext();
+
+const showConnectModal = computed({
+  get: () => !isLoggedIn.value,
+  set: () => {}, // Modal só fecha quando fizer login
+});
 </script>
 
 <style lang="scss">

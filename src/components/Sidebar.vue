@@ -78,7 +78,7 @@ const route = useRoute();
 const currentRoute = computed(() => route.path);
 const hoveredPath = ref<string | null>(null);
 
-const { networks, activeNetwork, isLoggedIn, truncatedAddress, setActiveNetwork, logout, login } = useUserContext();
+const { networks, activeNetwork, isLoggedIn, truncatedAddress, setActiveNetwork, logout } = useUserContext();
 
 const navigationItems = [
   { path: "/", text: "Home", icon: "mdi-home" },
@@ -125,8 +125,6 @@ const handleNetworkChange = (networkId: string) => {
 const handleLogout = () => {
   logout();
 };
-
-login("0x9426BbAFe1231231231231231231231231231231");
 </script>
 
 <style lang="scss">

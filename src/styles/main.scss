@@ -1,12 +1,45 @@
 @use "reset";
 
 :root {
-  --primary-color: #4a90e2;
-  --secondary-color: #2c3e50;
-  --background-color: #ffffff;
-  --text-color: #333333;
+  --primary-color: #0d0b1c;
+  --text-color: #ffffff;
+  --accent-color: #8247e5;
+  --hover-color: rgba(255, 255, 255, 0.1);
 }
 
 #app {
   min-height: 100vh;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  color: var(--text-color);
+  background-color: var(--primary-color);
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.icon {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }

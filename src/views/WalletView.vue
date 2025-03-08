@@ -1,11 +1,11 @@
 <template>
-  <div class="home">
-    <h1>Home Page</h1>
+  <div class="wallet">
+    <h1>Wallet Page</h1>
   </div>
 </template>
 
 <style lang="scss" scoped>
-.home {
+.wallet {
   padding: 24px;
   color: white;
 }

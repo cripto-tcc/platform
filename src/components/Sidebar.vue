@@ -8,20 +8,21 @@
 
     <!-- Navigation Menu -->
     <nav class="nav">
-      <div class="nav__item">
+      <router-link
+        v-for="item in navigationItems"
+        :key="item.path"
+        :to="item.path"
+        class="nav__item"
+        :class="{ 'nav__item--active': currentRoute === item.path }"
+        @mouseenter="hoveredPath = item.path"
+        @mouseleave="hoveredPath = null"
+      >
         <div class="nav__link">
-          <v-icon icon="mdi-home" size="24" color="#505050" />
-          <span>Home</span>
+          <v-icon :icon="item.icon" size="24" :color="getIconColor(item.path)" />
+          <span>{{ item.text }}</span>
         </div>
-      </div>
-
-      <div class="nav__item nav__item--active">
-        <div class="nav__link">
-          <v-icon icon="mdi-wallet" size="24" color="#A2A0B3" />
-          <span>Wallet</span>
-        </div>
-        <div class="nav__active-indicator"></div>
-      </div>
+        <div v-if="currentRoute === item.path" class="nav__active-indicator"></div>
+      </router-link>
     </nav>
 
     <div class="footer">
@@ -67,12 +68,27 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
+import { useRoute } from "vue-router";
 import ethereumIcon from "../assets/ethereum.svg";
 import polygonIcon from "../assets/polygon.svg";
 import logoIcon from "../assets/logo.svg";
 
+const route = useRoute();
+const currentRoute = computed(() => route.path);
+const hoveredPath = ref<string | null>(null);
 const selectedNetwork = ref("ethereum");
+
+const navigationItems = [
+  { path: "/", text: "Home", icon: "mdi-home" },
+  { path: "/wallet", text: "Wallet", icon: "mdi-wallet" },
+];
+
+const getIconColor = (path: string) => {
+  if (currentRoute.value === path) return "#FFFFFF";
+  if (hoveredPath.value === path) return "rgba(255, 255, 255, 0.8)";
+  return "#505050";
+};
 
 const networks = [
   { text: "Ethereum", value: "ethereum", icon: ethereumIcon },
@@ -136,6 +152,20 @@ const selectStyles = {
     align-items: center;
     gap: 16px;
     padding-right: 28px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+
+    &:hover {
+      .nav__link {
+        span {
+          color: rgba(255, 255, 255, 0.8);
+        }
+
+        :deep(.v-icon) {
+          color: rgba(255, 255, 255, 0.8) !important;
+        }
+      }
+    }
 
     &--active {
       .nav__link {
@@ -155,6 +185,7 @@ const selectStyles = {
     span {
       color: #505050;
       font-size: 14px;
+      transition: color 0.2s ease;
     }
   }
 

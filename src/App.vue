@@ -2,7 +2,7 @@
   <div class="app">
     <Sidebar />
     <main class="main">
-      <RouterView />
+      <RouterView v-if="isLoggedIn" />
     </main>
     <ConnectWalletModal v-model="showConnectModal" />
   </div>
@@ -19,7 +19,7 @@ const { isLoggedIn } = useUserContext();
 
 const showConnectModal = computed({
   get: () => !isLoggedIn.value,
-  set: () => {}, // Modal só fecha quando fizer login
+  set: () => {},
 });
 </script>
 

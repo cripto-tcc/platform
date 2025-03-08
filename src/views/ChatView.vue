@@ -1,11 +1,11 @@
 <template>
-  <div class="wallet">
-    <h1>Wallet Content</h1>
+  <div class="chat">
+    <h1>Chat Content</h1>
   </div>
 </template>
 
 <style lang="scss" scoped>
-.wallet {
+.chat {
   padding: 24px;
 
   &__connect {

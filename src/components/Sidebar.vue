@@ -8,7 +8,7 @@
     <nav class="nav">
       <div class="nav__active-indicator" :style="indicatorStyle"></div>
       <router-link
-        v-for="(item, index) in navigationItems"
+        v-for="item in navigationItems"
         :key="item.path"
         :to="item.path"
         class="nav__item"
@@ -81,7 +81,7 @@ const hoveredPath = ref<string | null>(null);
 const { networks, activeNetwork, isLoggedIn, truncatedAddress, setActiveNetwork, logout } = useUserContext();
 
 const navigationItems = [
-  { path: "/", text: "Home", icon: "mdi-home" },
+  { path: "/", text: "Chat", icon: "mdi-home" },
   { path: "/wallet", text: "Wallet", icon: "mdi-wallet" },
 ];
 

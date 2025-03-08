@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
-import HomeView from "../views/HomeView.vue";
+import { useUserContext } from "../composables/useUserContext";
+import ChatView from "../views/ChatView.vue";
 import WalletView from "../views/WalletView.vue";
 
 const router = createRouter({
@@ -7,15 +8,27 @@ const router = createRouter({
   routes: [
     {
       path: "/",
-      name: "home",
-      component: HomeView,
+      name: "chat",
+      component: ChatView,
+      meta: { requiresAuth: true },
     },
     {
       path: "/wallet",
       name: "wallet",
       component: WalletView,
+      meta: { requiresAuth: true },
     },
   ],
+});
+
+router.beforeEach((to, _from, next) => {
+  const { isLoggedIn } = useUserContext();
+
+  if (to.meta.requiresAuth && !isLoggedIn.value) {
+    next();
+  } else {
+    next();
+  }
 });
 
 export default router;

@@ -1,12 +1,10 @@
 <template>
   <aside class="sidebar">
-    <!-- Logo -->
     <div class="logo">
       <img :src="logoIcon" alt="Logo" class="logo__icon" />
       <span class="logo__text">Crypto<span class="logo__text--bold">Chat</span></span>
     </div>
 
-    <!-- Navigation Menu -->
     <nav class="nav">
       <router-link
         v-for="item in navigationItems"
@@ -111,7 +109,7 @@ const selectStyles = {
 
 <style lang="scss">
 .sidebar {
-  width: 269px;
+  width: 272px;
   height: 100vh;
   background-color: #0d0b1c;
   display: flex;
@@ -119,7 +117,7 @@ const selectStyles = {
 }
 
 .logo {
-  padding: 44px 60px;
+  padding: 40px 56px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -132,7 +130,7 @@ const selectStyles = {
 
   &__text {
     color: #e1dfec;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 400;
   }
 
@@ -142,7 +140,7 @@ const selectStyles = {
 }
 
 .nav {
-  padding: 20px 0 0 20px;
+  padding: 24px 0 0 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -151,7 +149,7 @@ const selectStyles = {
     display: flex;
     align-items: center;
     gap: 16px;
-    padding-right: 28px;
+    padding-right: 24px;
     text-decoration: none;
     transition: all 0.2s ease;
 
@@ -184,14 +182,14 @@ const selectStyles = {
 
     span {
       color: #505050;
-      font-size: 14px;
+      font-size: 16px;
       transition: color 0.2s ease;
     }
   }
 
   &__active-indicator {
     width: 3px;
-    height: 14px;
+    height: 16px;
     background-color: #7d67ff;
     margin-left: auto;
   }
@@ -219,7 +217,7 @@ const selectStyles = {
     }
 
     :deep(.v-field__input) {
-      padding: 0 12px;
+      padding: 0 16px;
       min-height: 56px;
       color: white !important;
     }
@@ -248,8 +246,8 @@ const selectStyles = {
   }
 
   &__icon {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
   }
 
   &__item {
@@ -287,13 +285,13 @@ const selectStyles = {
     background: none;
     border: none;
     cursor: pointer;
-    padding: 8px 12px;
+    padding: 8px 16px;
     font-size: 14px;
     transition: color 0.2s ease;
 
     svg,
     .v-icon {
-      margin-right: 12px;
+      margin-right: 16px;
       transition: color 0.2s ease;
     }
 

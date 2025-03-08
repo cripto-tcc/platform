@@ -6,8 +6,9 @@
     </div>
 
     <nav class="nav">
+      <div class="nav__active-indicator" :style="indicatorStyle"></div>
       <router-link
-        v-for="item in navigationItems"
+        v-for="(item, index) in navigationItems"
         :key="item.path"
         :to="item.path"
         class="nav__item"
@@ -19,7 +20,6 @@
           <v-icon :icon="item.icon" size="24" :color="getIconColor(item.path)" />
           <span>{{ item.text }}</span>
         </div>
-        <div v-if="currentRoute === item.path" class="nav__active-indicator"></div>
       </router-link>
     </nav>
 
@@ -105,6 +105,20 @@ const selectStyles = {
     color: "white",
   },
 };
+
+const getActiveItemIndex = computed(() => {
+  return navigationItems.findIndex((item) => item.path === currentRoute.value);
+});
+
+const indicatorStyle = computed(() => {
+  const baseOffset = 8;
+  const itemSpacing = 56;
+  const topOffset = baseOffset + getActiveItemIndex.value * itemSpacing;
+
+  return {
+    transform: `translateY(${topOffset}px)`,
+  };
+});
 </script>
 
 <style lang="scss">
@@ -144,6 +158,7 @@ const selectStyles = {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  position: relative;
 
   &__item {
     display: flex;
@@ -152,6 +167,7 @@ const selectStyles = {
     padding-right: 24px;
     text-decoration: none;
     transition: all 0.2s ease;
+    height: 40px;
 
     &:hover {
       .nav__link {
@@ -188,10 +204,14 @@ const selectStyles = {
   }
 
   &__active-indicator {
+    position: absolute;
+    right: 0;
     width: 3px;
     height: 16px;
     background-color: #7d67ff;
-    margin-left: auto;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 2px;
+    margin-top: 4px;
   }
 }
 

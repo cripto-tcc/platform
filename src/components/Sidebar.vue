@@ -24,43 +24,46 @@
     </nav>
 
     <div class="footer">
-      <div class="network-select">
-        <v-select
-          v-model="selectedNetwork"
-          :items="networks"
-          label="Network"
-          item-title="text"
-          item-value="value"
-          variant="outlined"
-          class="network-select__field"
-          hide-details
-          :custom-styles="selectStyles"
-        >
-          <template v-slot:selection="{ item }">
-            <div class="network-select__value">
-              <img :src="item.raw.icon" :alt="item.raw.text" class="network-select__icon" />
-              <span>{{ item.raw.text }}</span>
-            </div>
-          </template>
+      <Transition name="fade">
+        <div class="network-select" v-if="isLoggedIn">
+          <v-select
+            v-model="activeNetwork.id"
+            :items="networks"
+            label="Network"
+            item-title="name"
+            item-value="id"
+            variant="outlined"
+            class="network-select__field"
+            hide-details
+            :custom-styles="selectStyles"
+            @update:model-value="handleNetworkChange"
+          >
+            <template v-slot:selection="{ item }">
+              <div class="network-select__value">
+                <img :src="item.raw.icon" :alt="item.raw.name" class="network-select__icon" />
+                <span>{{ item.raw.name }}</span>
+              </div>
+            </template>
 
-          <template v-slot:item="{ item, props }">
-            <v-list-item v-bind="props" class="network-select__item">
-              <template v-slot:prepend>
-                <img :src="item.raw.icon" :alt="item.raw.text" class="network-select__icon" />
-              </template>
-            </v-list-item>
-          </template>
-        </v-select>
+            <template v-slot:item="{ item, props }">
+              <v-list-item v-bind="props" class="network-select__item">
+                <template v-slot:prepend>
+                  <img :src="item.raw.icon" :alt="item.raw.name" class="network-select__icon" />
+                </template>
+              </v-list-item>
+            </template>
+          </v-select>
 
-        <div class="wallet-address">Connected: 0x9426BbAFe...</div>
+          <div class="wallet-address">Connected: {{ truncatedAddress }}</div>
 
-        <div class="footer-menu">
-          <button class="footer-menu__button footer-menu__button--logout">
-            <v-icon icon="mdi-logout" color="white" size="24" />
-            <span>Log Out</span>
-          </button>
+          <div class="footer-menu">
+            <button class="footer-menu__button footer-menu__button--logout" @click="handleLogout">
+              <v-icon icon="mdi-logout" color="white" size="24" />
+              <span>Log Out</span>
+            </button>
+          </div>
         </div>
-      </div>
+      </Transition>
     </div>
   </aside>
 </template>
@@ -68,14 +71,14 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useRoute } from "vue-router";
-import ethereumIcon from "../assets/ethereum.svg";
-import polygonIcon from "../assets/polygon.svg";
+import { useUserContext } from "../composables/useUserContext";
 import logoIcon from "../assets/logo.svg";
 
 const route = useRoute();
 const currentRoute = computed(() => route.path);
 const hoveredPath = ref<string | null>(null);
-const selectedNetwork = ref("ethereum");
+
+const { networks, activeNetwork, isLoggedIn, truncatedAddress, setActiveNetwork, logout, login } = useUserContext();
 
 const navigationItems = [
   { path: "/", text: "Home", icon: "mdi-home" },
@@ -87,11 +90,6 @@ const getIconColor = (path: string) => {
   if (hoveredPath.value === path) return "rgba(255, 255, 255, 0.8)";
   return "#505050";
 };
-
-const networks = [
-  { text: "Ethereum", value: "ethereum", icon: ethereumIcon },
-  { text: "Polygon", value: "polygon", icon: polygonIcon },
-];
 
 const selectStyles = {
   root: {
@@ -119,6 +117,16 @@ const indicatorStyle = computed(() => {
     transform: `translateY(${topOffset}px)`,
   };
 });
+
+const handleNetworkChange = (networkId: string) => {
+  setActiveNetwork(networkId);
+};
+
+const handleLogout = () => {
+  logout();
+};
+
+login("0x9426BbAFe1231231231231231231231231231231");
 </script>
 
 <style lang="scss">
@@ -346,5 +354,15 @@ const indicatorStyle = computed(() => {
     background: #0d0b1c !important;
     color: white !important;
   }
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

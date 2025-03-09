@@ -1,17 +1,68 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import ethereumIcon from "../assets/ethereum.svg";
 import polygonIcon from "../assets/polygon.svg";
+import baseIcon from "../assets/base.svg";
 import { AuthService } from "../services/auth";
 
 export interface Network {
   id: string;
   name: string;
   icon: string;
+  chainId: string;
+  chainConfig?: {
+    chainId: string;
+    chainName: string;
+    nativeCurrency: {
+      name: string;
+      symbol: string;
+      decimals: number;
+    };
+    rpcUrls: string[];
+    blockExplorerUrls: string[];
+  };
 }
 
 export const networks: Network[] = [
-  { id: "ethereum", name: "Ethereum", icon: ethereumIcon },
-  { id: "polygon", name: "Polygon", icon: polygonIcon },
+  {
+    id: "ethereum",
+    name: "Ethereum",
+    icon: ethereumIcon,
+    chainId: "0x1",
+  },
+  {
+    id: "polygon",
+    name: "Polygon",
+    icon: polygonIcon,
+    chainId: "0x89",
+    chainConfig: {
+      chainId: "0x89",
+      chainName: "Polygon",
+      nativeCurrency: {
+        name: "MATIC",
+        symbol: "MATIC",
+        decimals: 18,
+      },
+      rpcUrls: ["https://polygon-rpc.com/"],
+      blockExplorerUrls: ["https://polygonscan.com/"],
+    },
+  },
+  {
+    id: "base",
+    name: "Base",
+    icon: baseIcon,
+    chainId: "0x2105",
+    chainConfig: {
+      chainId: "0x2105",
+      chainName: "Base",
+      nativeCurrency: {
+        name: "ETH",
+        symbol: "ETH",
+        decimals: 18,
+      },
+      rpcUrls: ["https://mainnet.base.org"],
+      blockExplorerUrls: ["https://basescan.org"],
+    },
+  },
 ];
 
 const activeNetwork = ref<Network>(networks[0]);
@@ -24,15 +75,32 @@ export function useUserContext() {
   onMounted(async () => {
     try {
       isLoading.value = true;
+
+      const savedNetworkId = localStorage.getItem("activeNetworkId");
+      if (savedNetworkId) {
+        const savedNetwork = networks.find((n) => n.id === savedNetworkId);
+        if (savedNetwork) {
+          activeNetwork.value = savedNetwork;
+        }
+      }
+
       isFirebaseReady.value = await AuthService.testConnection();
-      console.log("Firebase connection status:", isFirebaseReady.value);
 
       if (AuthService.isAuthenticated()) {
         const user = AuthService.getCurrentUser();
-        console.log("User:", user);
         if (user?.displayName) {
           walletAddress.value = user.displayName;
           isLoggedIn.value = true;
+
+          if (window.phantom?.ethereum && activeNetwork.value.id !== "ethereum") {
+            try {
+              await setActiveNetwork(activeNetwork.value.id);
+            } catch (error) {
+              console.error("Failed to restore network:", error);
+              activeNetwork.value = networks[0];
+              localStorage.setItem("activeNetworkId", networks[0].id);
+            }
+          }
         }
       }
 
@@ -80,44 +148,26 @@ export function useUserContext() {
     if (network) {
       try {
         if (window.phantom?.ethereum) {
-          if (networkId === "polygon") {
-            try {
-              await window.phantom.ethereum.request({
-                method: "wallet_switchEthereumChain",
-                params: [{ chainId: "0x89" }],
-              });
-            } catch (error: any) {
-              if (error.code === 4902) {
-                await window.phantom.ethereum.request({
-                  method: "wallet_addEthereumChain",
-                  params: [
-                    {
-                      chainId: "0x89",
-                      chainName: "Polygon",
-                      nativeCurrency: {
-                        name: "MATIC",
-                        symbol: "MATIC",
-                        decimals: 18,
-                      },
-                      rpcUrls: ["https://polygon-rpc.com/"],
-                      blockExplorerUrls: ["https://polygonscan.com/"],
-                    },
-                  ],
-                });
-              }
-            }
-          } else if (networkId === "ethereum") {
+          try {
             await window.phantom.ethereum.request({
               method: "wallet_switchEthereumChain",
-              params: [{ chainId: "0x1" }],
+              params: [{ chainId: network.chainId }],
             });
+          } catch (error: any) {
+            if (error.code === 4902 && network.chainConfig) {
+              await window.phantom.ethereum.request({
+                method: "wallet_addEthereumChain",
+                params: [network.chainConfig],
+              });
+            } else {
+              throw error;
+            }
           }
         }
 
         activeNetwork.value = network;
         localStorage.setItem("activeNetworkId", networkId);
       } catch (error) {
-        console.error("Error switching network:", error);
         throw error;
       }
     }
@@ -155,10 +205,17 @@ export function useUserContext() {
     try {
       isLoading.value = true;
       await AuthService.logout();
+
+      if (activeNetwork.value.id !== "ethereum") {
+        try {
+          await setActiveNetwork("ethereum");
+        } catch (error) {
+          console.error("Failed to switch back to Ethereum:", error);
+        }
+      }
+
       walletAddress.value = null;
       isLoggedIn.value = false;
-      activeNetwork.value = networks[0];
-      localStorage.removeItem("activeNetworkId");
     } catch (error) {
       console.error("Error during logout:", error);
       throw error;

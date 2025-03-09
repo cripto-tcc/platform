@@ -10,13 +10,8 @@ export interface AuthSession {
 export class AuthService {
   static async testConnection(): Promise<boolean> {
     return new Promise((resolve) => {
-      const unsubscribe = onAuthStateChanged(auth, (user) => {
+      const unsubscribe = onAuthStateChanged(auth, () => {
         unsubscribe();
-        console.log("Firebase Auth Status:", {
-          isInitialized: !!auth,
-          currentUser: user,
-          isConnected: !!auth.app,
-        });
         resolve(!!auth.app);
       });
     });

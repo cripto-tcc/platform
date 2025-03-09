@@ -27,7 +27,7 @@
       <Transition name="fade">
         <div class="network-select" v-if="isLoggedIn">
           <v-select
-            v-model="activeNetwork.id"
+            :model-value="activeNetwork"
             :items="networks"
             label="Network"
             item-title="name"
@@ -37,6 +37,8 @@
             hide-details
             :custom-styles="selectStyles"
             @update:model-value="handleNetworkChange"
+            return-object
+            single-select
           >
             <template v-slot:selection="{ item }">
               <div class="network-select__value">
@@ -71,7 +73,7 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useRoute } from "vue-router";
-import { useUserContext } from "../composables/useUserContext";
+import { useUserContext, type Network } from "../composables/useUserContext";
 import logoIcon from "../assets/logo.svg";
 
 const route = useRoute();
@@ -118,8 +120,10 @@ const indicatorStyle = computed(() => {
   };
 });
 
-const handleNetworkChange = (networkId: string) => {
-  setActiveNetwork(networkId);
+const handleNetworkChange = async (network: Network | null) => {
+  if (network) {
+    await setActiveNetwork(network.id);
+  }
 };
 
 const handleLogout = () => {

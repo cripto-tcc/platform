@@ -9,7 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@firebase/auth": "^1.9.1",
     "@mdi/font": "^7.4.47",
+    "firebase": "^11.4.0",
     "sass": "^1.85.1",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0",

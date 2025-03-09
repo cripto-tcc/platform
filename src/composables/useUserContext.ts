@@ -1,6 +1,7 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import ethereumIcon from "../assets/ethereum.svg";
 import polygonIcon from "../assets/polygon.svg";
+import { AuthService } from "../services/auth";
 
 export interface Network {
   id: string;
@@ -16,43 +17,52 @@ export const networks: Network[] = [
 const activeNetwork = ref<Network>(networks[0]);
 const walletAddress = ref<string | null>(null);
 const isLoggedIn = ref(false);
+const isFirebaseReady = ref(false);
 
 export function useUserContext() {
-  onMounted(() => {
-    const savedAddress = localStorage.getItem("walletAddress");
-    const savedNetworkId = localStorage.getItem("activeNetworkId");
+  onMounted(async () => {
+    try {
+      isFirebaseReady.value = await AuthService.testConnection();
+      console.log("Firebase connection status:", isFirebaseReady.value);
 
-    if (savedAddress) {
-      walletAddress.value = savedAddress;
-      isLoggedIn.value = true;
-    }
+      const savedAddress = localStorage.getItem("walletAddress");
+      const savedNetworkId = localStorage.getItem("activeNetworkId");
 
-    if (savedNetworkId) {
-      const network = networks.find((n) => n.id === savedNetworkId);
-      if (network) {
-        activeNetwork.value = network;
+      if (savedAddress) {
+        walletAddress.value = savedAddress;
+        isLoggedIn.value = true;
       }
-    }
 
-    const provider = window.phantom?.ethereum;
-    if (provider) {
-      const handleAccountsChanged = (accounts: string[]) => {
-        if (accounts.length === 0) {
-          logout();
+      if (savedNetworkId) {
+        const network = networks.find((n) => n.id === savedNetworkId);
+        if (network) {
+          activeNetwork.value = network;
         }
-      };
+      }
 
-      const handleDisconnect = () => {
-        logout();
-      };
+      const provider = window.phantom?.ethereum;
+      if (provider) {
+        const handleAccountsChanged = (accounts: string[]) => {
+          if (accounts.length === 0) {
+            logout();
+          }
+        };
 
-      provider.on("accountsChanged", handleAccountsChanged);
-      provider.on("disconnect", handleDisconnect);
+        const handleDisconnect = () => {
+          logout();
+        };
 
-      onUnmounted(() => {
-        provider.removeListener("accountsChanged", handleAccountsChanged);
-        provider.removeListener("disconnect", handleDisconnect);
-      });
+        provider.on("accountsChanged", handleAccountsChanged);
+        provider.on("disconnect", handleDisconnect);
+
+        onUnmounted(() => {
+          provider.removeListener("accountsChanged", handleAccountsChanged);
+          provider.removeListener("disconnect", handleDisconnect);
+        });
+      }
+    } catch (error) {
+      console.error("Error initializing Firebase:", error);
+      isFirebaseReady.value = false;
     }
   });
 
@@ -156,6 +166,7 @@ export function useUserContext() {
     activeNetwork,
     walletAddress,
     isLoggedIn,
+    isFirebaseReady,
     truncatedAddress,
     setActiveNetwork,
     setWalletAddress,

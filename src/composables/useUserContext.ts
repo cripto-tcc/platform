@@ -18,27 +18,33 @@ const activeNetwork = ref<Network>(networks[0]);
 const walletAddress = ref<string | null>(null);
 const isLoggedIn = ref(false);
 const isFirebaseReady = ref(false);
+const isLoading = ref(false);
 
 export function useUserContext() {
   onMounted(async () => {
     try {
+      isLoading.value = true;
       isFirebaseReady.value = await AuthService.testConnection();
       console.log("Firebase connection status:", isFirebaseReady.value);
 
-      const savedAddress = localStorage.getItem("walletAddress");
-      const savedNetworkId = localStorage.getItem("activeNetworkId");
-
-      if (savedAddress) {
-        walletAddress.value = savedAddress;
-        isLoggedIn.value = true;
-      }
-
-      if (savedNetworkId) {
-        const network = networks.find((n) => n.id === savedNetworkId);
-        if (network) {
-          activeNetwork.value = network;
+      if (AuthService.isAuthenticated()) {
+        const user = AuthService.getCurrentUser();
+        console.log("User:", user);
+        if (user?.displayName) {
+          walletAddress.value = user.displayName;
+          isLoggedIn.value = true;
         }
       }
+
+      const unsubscribeAuth = AuthService.onAuthStateChange((user) => {
+        if (user && user.displayName) {
+          walletAddress.value = user.displayName;
+          isLoggedIn.value = true;
+        } else {
+          walletAddress.value = null;
+          isLoggedIn.value = false;
+        }
+      });
 
       const provider = window.phantom?.ethereum;
       if (provider) {
@@ -56,6 +62,7 @@ export function useUserContext() {
         provider.on("disconnect", handleDisconnect);
 
         onUnmounted(() => {
+          unsubscribeAuth();
           provider.removeListener("accountsChanged", handleAccountsChanged);
           provider.removeListener("disconnect", handleDisconnect);
         });
@@ -63,6 +70,8 @@ export function useUserContext() {
     } catch (error) {
       console.error("Error initializing Firebase:", error);
       isFirebaseReady.value = false;
+    } finally {
+      isLoading.value = false;
     }
   });
 
@@ -114,20 +123,10 @@ export function useUserContext() {
     }
   };
 
-  const setWalletAddress = (address: string | null) => {
-    walletAddress.value = address;
-    isLoggedIn.value = !!address;
-    if (address) {
-      localStorage.setItem("walletAddress", address);
-    } else {
-      localStorage.removeItem("walletAddress");
-    }
-  };
-
   const login = async () => {
     try {
+      isLoading.value = true;
       const provider = window.phantom?.ethereum;
-
       if (!provider) {
         throw new Error("Phantom wallet is not installed!");
       }
@@ -137,23 +136,35 @@ export function useUserContext() {
       });
 
       if (accounts[0]) {
-        setWalletAddress(accounts[0]);
-        return accounts[0];
+        const session = await AuthService.loginWithPhantom(accounts[0], activeNetwork.value.id);
+        walletAddress.value = session.address;
+        isLoggedIn.value = true;
+        return session;
       }
 
       throw new Error("No accounts found");
     } catch (error) {
       console.error("Error connecting to wallet:", error);
       throw error;
+    } finally {
+      isLoading.value = false;
     }
   };
 
   const logout = async () => {
-    setWalletAddress(null);
-    localStorage.removeItem("walletAddress");
-    localStorage.removeItem("activeNetworkId");
-    activeNetwork.value = networks[0];
-    isLoggedIn.value = false;
+    try {
+      isLoading.value = true;
+      await AuthService.logout();
+      walletAddress.value = null;
+      isLoggedIn.value = false;
+      activeNetwork.value = networks[0];
+      localStorage.removeItem("activeNetworkId");
+    } catch (error) {
+      console.error("Error during logout:", error);
+      throw error;
+    } finally {
+      isLoading.value = false;
+    }
   };
 
   const truncatedAddress = computed(() => {
@@ -167,9 +178,9 @@ export function useUserContext() {
     walletAddress,
     isLoggedIn,
     isFirebaseReady,
+    isLoading,
     truncatedAddress,
     setActiveNetwork,
-    setWalletAddress,
     login,
     logout,
   };

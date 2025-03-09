@@ -1,5 +1,5 @@
 <template>
-  <v-dialog :model-value="modelValue" @update:model-value="$emit('update:modelValue', $event)" persistent width="400" :scrim="true" class="connect-dialog">
+  <v-dialog :model-value="true" persistent width="400" :scrim="true" class="connect-dialog">
     <v-card class="modal" color="#0D0B1C">
       <v-card-text class="modal__content">
         <h1 class="modal__title">WELCOME</h1>
@@ -29,14 +29,6 @@
 import { ref } from "vue";
 import { useUserContext } from "../composables/useUserContext";
 
-defineProps<{
-  modelValue: boolean;
-}>();
-
-const emit = defineEmits<{
-  (e: "update:modelValue", value: boolean): void;
-}>();
-
 const { login } = useUserContext();
 const isConnecting = ref(false);
 const errorMessage = ref("");
@@ -46,7 +38,6 @@ const handleConnect = async () => {
   errorMessage.value = "";
 
   try {
-    // Verificar se a Phantom está instalada
     if (!window.phantom?.ethereum) {
       errorMessage.value = "Phantom wallet is not installed. Please install it first.";
       window.open("https://phantom.app/download", "_blank");
@@ -54,7 +45,6 @@ const handleConnect = async () => {
     }
 
     await login();
-    emit("update:modelValue", false);
   } catch (error: any) {
     console.error("Connection error:", error);
     errorMessage.value = error.message || "Failed to connect to wallet. Please try again.";

@@ -1,4 +1,4 @@
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed } from "vue";
 import ethereumIcon from "../assets/ethereum.svg";
 import polygonIcon from "../assets/polygon.svg";
 import baseIcon from "../assets/base.svg";
@@ -72,7 +72,21 @@ const isFirebaseReady = ref(false);
 const isLoading = ref(false);
 
 export function useUserContext() {
-  onMounted(async () => {
+  let unsubscribeAuth: (() => void) | null = null;
+  let provider: NonNullable<Window["phantom"]>["ethereum"] | null = null;
+
+  // Define handlers at the top level of the composable
+  const handleAccountsChanged = (accounts: string[]) => {
+    if (accounts.length === 0) {
+      logout();
+    }
+  };
+
+  const handleDisconnect = () => {
+    logout();
+  };
+
+  const initialize = async () => {
     try {
       isLoading.value = true;
 
@@ -104,7 +118,7 @@ export function useUserContext() {
         }
       }
 
-      const unsubscribeAuth = AuthService.onAuthStateChange((user) => {
+      unsubscribeAuth = AuthService.onAuthStateChange((user) => {
         if (user && user.displayName) {
           walletAddress.value = user.displayName;
           isLoggedIn.value = true;
@@ -114,26 +128,10 @@ export function useUserContext() {
         }
       });
 
-      const provider = window.phantom?.ethereum;
+      provider = window.phantom?.ethereum || null;
       if (provider) {
-        const handleAccountsChanged = (accounts: string[]) => {
-          if (accounts.length === 0) {
-            logout();
-          }
-        };
-
-        const handleDisconnect = () => {
-          logout();
-        };
-
         provider.on("accountsChanged", handleAccountsChanged);
         provider.on("disconnect", handleDisconnect);
-
-        onUnmounted(() => {
-          unsubscribeAuth();
-          provider.removeListener("accountsChanged", handleAccountsChanged);
-          provider.removeListener("disconnect", handleDisconnect);
-        });
       }
     } catch (error) {
       console.error("Error initializing Firebase:", error);
@@ -141,7 +139,17 @@ export function useUserContext() {
     } finally {
       isLoading.value = false;
     }
-  });
+  };
+
+  const cleanup = () => {
+    if (unsubscribeAuth) {
+      unsubscribeAuth();
+    }
+    if (provider) {
+      provider.removeListener("accountsChanged", handleAccountsChanged);
+      provider.removeListener("disconnect", handleDisconnect);
+    }
+  };
 
   const setActiveNetwork = async (networkId: string) => {
     const network = networks.find((n) => n.id === networkId);
@@ -240,6 +248,8 @@ export function useUserContext() {
     setActiveNetwork,
     login,
     logout,
+    initialize,
+    cleanup,
   };
 }
 

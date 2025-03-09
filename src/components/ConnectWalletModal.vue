@@ -5,16 +5,20 @@
         <h1 class="modal__title">WELCOME</h1>
         <p class="modal__description">Connect your wallet to use the platform</p>
 
-        <v-btn class="modal__button" color="#1A1A1A" block height="48" @click="handleConnect">
+        <v-btn class="modal__button" color="#1A1A1A" block height="48" @click="handleConnect" :loading="isConnecting">
           <div class="modal__button-content">
             <img src="../assets/phantom.svg" alt="Phantom" class="modal__button-icon" />
             <span>Connect with Phantom</span>
           </div>
         </v-btn>
 
+        <div v-if="errorMessage" class="modal__error">
+          {{ errorMessage }}
+        </div>
+
         <div class="modal__help">
           <span>I'm new to Crypto, </span>
-          <a href="#" class="modal__help-link">what is a wallet?</a>
+          <a href="https://phantom.app/learn/beginners-guide" target="_blank" class="modal__help-link">what is a wallet?</a>
         </div>
       </v-card-text>
     </v-card>
@@ -22,6 +26,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from "vue";
 import { useUserContext } from "../composables/useUserContext";
 
 defineProps<{
@@ -33,10 +38,29 @@ const emit = defineEmits<{
 }>();
 
 const { login } = useUserContext();
+const isConnecting = ref(false);
+const errorMessage = ref("");
 
-const handleConnect = () => {
-  login("0x9426BbAFe1231231231231231231231231231231");
-  emit("update:modelValue", false);
+const handleConnect = async () => {
+  isConnecting.value = true;
+  errorMessage.value = "";
+
+  try {
+    // Verificar se a Phantom está instalada
+    if (!window.phantom?.ethereum) {
+      errorMessage.value = "Phantom wallet is not installed. Please install it first.";
+      window.open("https://phantom.app/download", "_blank");
+      return;
+    }
+
+    await login();
+    emit("update:modelValue", false);
+  } catch (error: any) {
+    console.error("Connection error:", error);
+    errorMessage.value = error.message || "Failed to connect to wallet. Please try again.";
+  } finally {
+    isConnecting.value = false;
+  }
 };
 </script>
 
@@ -70,6 +94,12 @@ const handleConnect = () => {
   &__description {
     color: #fff;
     font-size: 14px;
+  }
+
+  &__error {
+    color: #ff5252;
+    font-size: 14px;
+    margin-top: 8px;
   }
 
   &__button {

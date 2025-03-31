@@ -72,10 +72,8 @@ const isFirebaseReady = ref(false);
 const isLoading = ref(false);
 
 export function useUserContext() {
-  let unsubscribeAuth: (() => void) | null = null;
   let provider: NonNullable<Window["phantom"]>["ethereum"] | null = null;
 
-  // Define handlers at the top level of the composable
   const handleAccountsChanged = (accounts: string[]) => {
     if (accounts.length === 0) {
       logout();
@@ -86,53 +84,60 @@ export function useUserContext() {
     logout();
   };
 
+  const restoreSavedNetwork = async () => {
+    const savedNetworkId = localStorage.getItem("activeNetworkId");
+    const network = savedNetworkId ? networks.find((n) => n.id === savedNetworkId) : networks[0];
+
+    if (network) {
+      activeNetwork.value = network;
+
+      if (window.phantom?.ethereum && network.id !== "ethereum") {
+        try {
+          await setActiveNetwork(network.id);
+        } catch (error) {
+          console.error("Failed to restore network:", error);
+          activeNetwork.value = networks[0];
+          localStorage.setItem("activeNetworkId", networks[0].id);
+        }
+      }
+    }
+  };
+
+  const setupAuthState = async () => {
+    isFirebaseReady.value = await AuthService.testConnection();
+
+    if (AuthService.isAuthenticated()) {
+      const user = AuthService.getCurrentUser();
+      walletAddress.value = user?.displayName || null;
+      isLoggedIn.value = true;
+    }
+
+    AuthService.onAuthStateChange((user) => {
+      if (user && user.displayName) {
+        walletAddress.value = user.displayName;
+        isLoggedIn.value = true;
+      } else {
+        walletAddress.value = null;
+        isLoggedIn.value = false;
+      }
+    });
+  };
+
+  const setupWalletListeners = () => {
+    provider = window.phantom?.ethereum || null;
+    if (provider) {
+      provider.on("accountsChanged", handleAccountsChanged);
+      provider.on("disconnect", handleDisconnect);
+    }
+  };
+
   const initialize = async () => {
     try {
       isLoading.value = true;
 
-      const savedNetworkId = localStorage.getItem("activeNetworkId");
-      if (savedNetworkId) {
-        const savedNetwork = networks.find((n) => n.id === savedNetworkId);
-        if (savedNetwork) {
-          activeNetwork.value = savedNetwork;
-        }
-      }
-
-      isFirebaseReady.value = await AuthService.testConnection();
-
-      if (AuthService.isAuthenticated()) {
-        const user = AuthService.getCurrentUser();
-        if (user?.displayName) {
-          walletAddress.value = user.displayName;
-          isLoggedIn.value = true;
-
-          if (window.phantom?.ethereum && activeNetwork.value.id !== "ethereum") {
-            try {
-              await setActiveNetwork(activeNetwork.value.id);
-            } catch (error) {
-              console.error("Failed to restore network:", error);
-              activeNetwork.value = networks[0];
-              localStorage.setItem("activeNetworkId", networks[0].id);
-            }
-          }
-        }
-      }
-
-      unsubscribeAuth = AuthService.onAuthStateChange((user) => {
-        if (user && user.displayName) {
-          walletAddress.value = user.displayName;
-          isLoggedIn.value = true;
-        } else {
-          walletAddress.value = null;
-          isLoggedIn.value = false;
-        }
-      });
-
-      provider = window.phantom?.ethereum || null;
-      if (provider) {
-        provider.on("accountsChanged", handleAccountsChanged);
-        provider.on("disconnect", handleDisconnect);
-      }
+      await restoreSavedNetwork();
+      await setupAuthState();
+      setupWalletListeners();
     } catch (error) {
       console.error("Error initializing Firebase:", error);
       isFirebaseReady.value = false;
@@ -142,9 +147,6 @@ export function useUserContext() {
   };
 
   const cleanup = () => {
-    if (unsubscribeAuth) {
-      unsubscribeAuth();
-    }
     if (provider) {
       provider.removeListener("accountsChanged", handleAccountsChanged);
       provider.removeListener("disconnect", handleDisconnect);
@@ -154,30 +156,8 @@ export function useUserContext() {
   const setActiveNetwork = async (networkId: string) => {
     const network = networks.find((n) => n.id === networkId);
     if (network) {
-      try {
-        if (window.phantom?.ethereum) {
-          try {
-            await window.phantom.ethereum.request({
-              method: "wallet_switchEthereumChain",
-              params: [{ chainId: network.chainId }],
-            });
-          } catch (error: any) {
-            if (error.code === 4902 && network.chainConfig) {
-              await window.phantom.ethereum.request({
-                method: "wallet_addEthereumChain",
-                params: [network.chainConfig],
-              });
-            } else {
-              throw error;
-            }
-          }
-        }
-
-        activeNetwork.value = network;
-        localStorage.setItem("activeNetworkId", networkId);
-      } catch (error) {
-        throw error;
-      }
+      activeNetwork.value = network;
+      localStorage.setItem("activeNetworkId", networkId);
     }
   };
 

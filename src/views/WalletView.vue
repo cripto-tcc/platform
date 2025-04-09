@@ -7,7 +7,8 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from "vue";
 import { useUserContext } from "../composables/useUserContext";
-import { MoralisService, Token } from "../services/moralis";
+import { MoralisService } from "../services/moralis";
+import { Token } from "../types/moralis";
 
 const { walletAddress, activeNetwork } = useUserContext();
 const tokens = ref<Token[]>([]);

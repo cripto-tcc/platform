@@ -3,24 +3,7 @@ import ethereumIcon from "../assets/ethereum.svg";
 import polygonIcon from "../assets/polygon.svg";
 import baseIcon from "../assets/base.svg";
 import { AuthService } from "../services/auth";
-
-export interface Network {
-  id: string;
-  name: string;
-  icon: string;
-  chainId: string;
-  chainConfig?: {
-    chainId: string;
-    chainName: string;
-    nativeCurrency: {
-      name: string;
-      symbol: string;
-      decimals: number;
-    };
-    rpcUrls: string[];
-    blockExplorerUrls: string[];
-  };
-}
+import { Network } from "../types/network";
 
 export const networks: Network[] = [
   {

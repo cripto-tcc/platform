@@ -1,11 +1,6 @@
 import { auth } from "../config/firebase";
 import { onAuthStateChanged, signInAnonymously, signOut as firebaseSignOut, updateProfile } from "firebase/auth";
-
-export interface AuthSession {
-  address: string;
-  network: string;
-  timestamp: number;
-}
+import { AuthSession } from "../types/auth";
 
 export class AuthService {
   static async testConnection(): Promise<boolean> {

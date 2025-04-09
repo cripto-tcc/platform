@@ -20,6 +20,7 @@ export interface Token {
   usd_value_24hr_usd_change: number | null;
   native_token: boolean;
   portfolio_percentage: number;
+  variance?: string;
 }
 
 export interface TokenResponse {

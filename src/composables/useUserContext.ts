@@ -24,7 +24,7 @@ export interface Network {
 
 export const networks: Network[] = [
   {
-    id: "ethereum",
+    id: "eth",
     name: "Ethereum",
     icon: ethereumIcon,
     chainId: "0x1",

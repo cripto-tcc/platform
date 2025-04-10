@@ -42,6 +42,7 @@ onUnmounted(() => {
 
 .main {
   flex: 1;
+  margin-left: 272px;
 }
 
 .loading-container {

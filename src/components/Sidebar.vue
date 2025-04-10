@@ -73,8 +73,9 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useRoute } from "vue-router";
-import { useUserContext, type Network } from "../composables/useUserContext";
+import { useUserContext } from "../composables/useUserContext";
 import logoIcon from "../assets/logo.svg";
+import { Network } from "../types/network";
 
 const route = useRoute();
 const currentRoute = computed(() => route.path);
@@ -138,6 +139,8 @@ const handleLogout = () => {
   background-color: #0d0b1c;
   display: flex;
   flex-direction: column;
+  position: fixed;
+  z-index: 2;
 }
 
 .logo {

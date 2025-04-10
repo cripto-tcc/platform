@@ -38,6 +38,7 @@ onUnmounted(() => {
 .app {
   display: flex;
   min-height: 100vh;
+  background-color: #0d0b1c;
 }
 
 .main {

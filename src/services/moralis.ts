@@ -16,7 +16,6 @@ export class MoralisService {
 
     response.data.result = response.data.result.filter((token) => token.usd_value > 0.01);
 
-    console.log(response.data);
     return response.data;
   }
 

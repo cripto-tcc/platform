@@ -3,7 +3,8 @@
     <div class="wallet-header">
       <div class="wallet-address">Wallet > {{ walletAddress }}</div>
       <div class="wallet-title">Total value</div>
-      <div class="wallet-value">{{ totalValue }}</div>
+      <v-skeleton-loader class="wallet-value-loader" v-if="isLoadingAssets" type="image" width="10px" height="10px"></v-skeleton-loader>
+      <div v-else class="wallet-value">{{ totalValue }}</div>
     </div>
 
     <div class="mt-8">
@@ -182,6 +183,16 @@ watch([walletAddress, activeNetwork], () => {
     font-size: 1rem;
     color: rgba(255, 255, 255, 0.5);
     text-align: left;
+  }
+
+  .wallet-value-loader {
+    width: 100px !important;
+    height: 40px !important;
+
+    :deep(.v-skeleton-loader__image) {
+      width: 100px !important;
+      height: 40px !important;
+    }
   }
 
   .wallet-title {

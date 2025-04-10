@@ -9,7 +9,7 @@
     <div class="mt-8">
       <div class="wallet-title">Assets</div>
 
-      <template v-if="isLoading">
+      <template v-if="isLoadingAssets">
         <v-skeleton-loader class="table-loader" type="image" width="100%" height="200px"></v-skeleton-loader>
       </template>
       <template v-else>
@@ -33,7 +33,7 @@
                   {{ token.name }}
                 </div>
               </td>
-              <td>{{ formatBalance(token.balance_formatted) }} {{ token.symbol }}</td>
+              <td>{{ token.balance_formatted }} {{ token.symbol }}</td>
               <td class="text-grey">${{ formatNumber(token.usd_value) }}</td>
               <td class="text-grey">${{ formatNumber(token.usd_price) }}</td>
               <td :class="getVarianceClass(token.usd_price_24hr_percent_change)">{{ formatVariance(token.usd_price_24hr_percent_change) }}%</td>
@@ -46,36 +46,32 @@
     <div class="mt-8">
       <div class="wallet-title">Activity</div>
 
-      <template v-if="isLoading">
-        <v-skeleton-loader type="text" width="100%" height="200px"></v-skeleton-loader>
+      <template v-if="isLoadingTransactions">
+        <v-skeleton-loader class="table-loader" type="image" width="100%" height="300px"></v-skeleton-loader>
       </template>
       <template v-else>
         <v-table class="activity-table">
           <thead>
             <tr>
-              <th>Transactions</th>
+              <th>Transaction</th>
               <th>Amount</th>
-              <th>Total</th>
-              <th>Status</th>
+              <th>Category</th>
               <th>Date</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(activity, index) in activities" :key="index">
+            <tr v-for="transaction in transactions" :key="transaction.hash">
               <td>
                 <div class="d-flex align-center">
-                  <v-avatar size="30" class="mr-2">
-                    <v-img :src="activity.icon" :alt="activity.name"></v-img>
+                  <v-avatar v-if="transaction.erc20_transfers[0]?.token_logo" size="30" class="mr-2">
+                    <v-img :src="transaction.erc20_transfers[0].token_logo" :alt="transaction.erc20_transfers[0].token_symbol"></v-img>
                   </v-avatar>
-                  {{ activity.name }}
+                  {{ transaction.summary }}
                 </div>
               </td>
-              <td>{{ activity.amount }}</td>
-              <td>${{ activity.total }}</td>
-              <td :class="activity.status === 'Done' ? 'text-success' : 'text-grey'">
-                {{ activity.status }}
-              </td>
-              <td class="text-grey">{{ activity.date }}</td>
+              <td>{{ transaction.erc20_transfers[0]?.value_formatted || "0" }}</td>
+              <td>{{ transaction.category }}</td>
+              <td>{{ formatDate(transaction.block_timestamp) }}</td>
             </tr>
           </tbody>
         </v-table>
@@ -88,52 +84,15 @@
 import { ref, onMounted, watch, computed } from "vue";
 import { useUserContext } from "../composables/useUserContext";
 import { MoralisService } from "../services/moralis";
-import { Token } from "../types/moralis";
+import { Token, Transaction } from "../types/moralis";
 
 const { walletAddress, activeNetwork } = useUserContext();
 const tokens = ref<Token[]>([]);
-const isLoading = ref(false);
+const transactions = ref<Transaction[]>([]);
+const isLoadingAssets = ref(false);
+const isLoadingTransactions = ref(false);
+
 const error = ref<string | null>(null);
-
-const activities = ref([
-  {
-    name: "Ethereum Purchased",
-    icon: "https://cryptologos.cc/logos/ethereum-eth-logo.png",
-    amount: "0.0154 ETH",
-    total: "10.00",
-    status: "Pending",
-    date: "February 21, 2021",
-  },
-  {
-    name: "Wrapped Bitcoin Purchased",
-    icon: "https://cryptologos.cc/logos/bitcoin-btc-logo.png",
-    amount: "0.3 BTC",
-    total: "10.00",
-    status: "Done",
-    date: "February 14, 2021",
-  },
-  {
-    name: "Wrapped Bitcoin Purchased",
-    icon: "https://cryptologos.cc/logos/bitcoin-btc-logo.png",
-    amount: "0.025 BTC",
-    total: "10.00",
-    status: "Done",
-    date: "January 14, 2021",
-  },
-]);
-
-const formatBalance = (balance: string) => {
-  const number = parseFloat(balance);
-  if (isNaN(number)) return balance;
-
-  const str = number.toString();
-  const firstNonZero = str.search(/[1-9]/);
-
-  if (firstNonZero === -1) return "0.00";
-
-  const decimalPlaces = Math.max(0, 2 - (str.indexOf(".") - firstNonZero));
-  return number.toFixed(decimalPlaces);
-};
 
 const formatNumber = (value: number) => {
   return value.toFixed(2);
@@ -141,6 +100,14 @@ const formatNumber = (value: number) => {
 
 const formatVariance = (variance: number) => {
   return variance.toFixed(2);
+};
+
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 };
 
 const totalValue = computed(() => {
@@ -157,7 +124,7 @@ const fetchTokens = async () => {
   if (!walletAddress.value) return;
 
   try {
-    isLoading.value = true;
+    isLoadingAssets.value = true;
     error.value = null;
 
     const response = await MoralisService.getWalletTokens(walletAddress.value, activeNetwork.value.id);
@@ -166,19 +133,38 @@ const fetchTokens = async () => {
     error.value = "Failed to fetch tokens";
     console.error("Error fetching tokens:", err);
   } finally {
-    isLoading.value = false;
+    isLoadingAssets.value = false;
+  }
+};
+
+const fetchTransactions = async () => {
+  if (!walletAddress.value) return;
+
+  try {
+    isLoadingTransactions.value = true;
+    error.value = null;
+
+    const response = await MoralisService.getWalletHistory(walletAddress.value, activeNetwork.value.id);
+    transactions.value = response.result;
+  } catch (err) {
+    error.value = "Failed to fetch transactions";
+    console.error("Error fetching transactions:", err);
+  } finally {
+    isLoadingTransactions.value = false;
   }
 };
 
 onMounted(() => {
   if (walletAddress.value) {
     fetchTokens();
+    fetchTransactions();
   }
 });
 
 watch([walletAddress, activeNetwork], () => {
   if (walletAddress.value) {
     fetchTokens();
+    fetchTransactions();
   }
 });
 </script>
@@ -223,6 +209,7 @@ watch([walletAddress, activeNetwork], () => {
     overflow: hidden;
     max-width: 1024px;
     padding: 24px 48px;
+    margin-top: 32px;
 
     :deep(td) {
       border-bottom: none !important;

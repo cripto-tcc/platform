@@ -30,3 +30,39 @@ export interface TokenResponse {
   block_number: number;
   result: Token[];
 }
+
+export interface ERC20Transfer {
+  token_name: string;
+  token_symbol: string;
+  token_logo: string | null;
+  token_decimals: string;
+  from_address: string;
+  to_address: string;
+  address: string;
+  value: string;
+  value_formatted: string;
+  possible_spam: boolean;
+  verified_contract: boolean;
+  direction: string;
+}
+
+export interface Transaction {
+  hash: string;
+  from_address: string;
+  to_address: string;
+  value: string;
+  block_timestamp: string;
+  method_label: string | null;
+  erc20_transfers: ERC20Transfer[];
+  native_transfers: any[];
+  summary: string;
+  category: string;
+}
+
+export interface TransactionResponse {
+  cursor: string | null;
+  page_size: number;
+  limit: string;
+  result: Transaction[];
+  page: number;
+}

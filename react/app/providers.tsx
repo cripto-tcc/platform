@@ -6,7 +6,9 @@ import { metaMaskWallet, phantomWallet } from "@rainbow-me/rainbowkit/wallets";
 import { base } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider, createConfig, http } from "wagmi";
-
+import { ThemeProvider } from "@mui/material";
+import theme from "./theme";
+import { Inter } from "next/font/google";
 const projectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID as string;
 
 // Configure Base network
@@ -45,6 +47,13 @@ const config = createConfig({
   transports: { [baseConfig.id]: http() },
 });
 
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  display: "swap",
+  variable: "--font-inter",
+});
+
 const queryClient = new QueryClient();
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -57,7 +66,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <WagmiProvider config={config}>
         <QueryClientProvider client={queryClient}>
           <RainbowKitProvider initialChain={baseConfig} locale="en-US">
-            {children}
+            <ThemeProvider theme={theme}>
+              <div className={inter.className}>{children}</div>
+            </ThemeProvider>
           </RainbowKitProvider>
         </QueryClientProvider>
       </WagmiProvider>

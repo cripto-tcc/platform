@@ -1,0 +1,178 @@
+.sidebar {
+  width: 272px;
+  flex-shrink: 0;
+
+  :global(.MuiDrawer-paper) {
+    width: 272px;
+    box-sizing: border-box;
+    background-color: #0d0b1c;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  :global {
+    .MuiList-root {
+      padding: 0;
+    }
+  }
+}
+
+.logo {
+  padding: 40px 56px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &__icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+  }
+
+  &__text {
+    color: #e1dfec;
+    font-size: 16px;
+    font-weight: 400;
+
+    &--bold {
+      font-weight: 500;
+    }
+  }
+}
+
+.nav {
+  padding: 24px 0 0 24px;
+  flex: 1;
+  position: relative;
+
+  &__item {
+    width: 100%;
+    text-decoration: none;
+  }
+
+  &__link {
+    height: 40px;
+    padding-right: 24px;
+
+    &:hover {
+      .nav__text {
+        color: rgba(255, 255, 255, 0.8);
+      }
+    }
+  }
+
+  &__itemActive {
+    .nav__text {
+      color: #fff;
+    }
+  }
+
+  &__icon {
+    min-width: 40px;
+  }
+
+  &__text {
+    font-size: 16px;
+  }
+
+  &__activeIndicator {
+    position: absolute;
+    right: 0;
+    width: 3px;
+    height: 16px;
+    background-color: #7d67ff;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 2px;
+    margin-top: 4px;
+  }
+}
+
+.styledIcon {
+  color: #505050;
+  transition: color 0.2s ease;
+  font-family: "Material Icons";
+  font-size: 24px;
+  line-height: 1;
+}
+
+.footer {
+  margin-top: auto;
+  padding: 0 24px 32px;
+}
+
+.networkSelect {
+  &__field {
+    :global(.MuiOutlinedInput-notchedOutline) {
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    &:hover :global(.MuiOutlinedInput-notchedOutline) {
+      border-color: rgba(255, 255, 255, 0.8);
+    }
+
+    &:global(.Mui-focused) :global(.MuiOutlinedInput-notchedOutline) {
+      border-color: white;
+    }
+
+    color: white;
+    background-color: transparent;
+    height: 56px;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+  }
+
+  &__value {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  &__icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  &__item {
+    font-size: 14px;
+    color: white;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+  }
+}
+
+.walletAddress {
+  color: #dddddd;
+  margin-top: 24px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.footerMenu {
+  margin-top: 24px;
+
+  &__button {
+    color: #dddddd;
+
+    &:hover {
+      color: #ff1744;
+
+      .footerMenu__text {
+        color: #ff1744;
+      }
+    }
+  }
+
+  &__icon {
+    min-width: 40px;
+  }
+
+  &__text {
+    font-size: 14px;
+  }
+}

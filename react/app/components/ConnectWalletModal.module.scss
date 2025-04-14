@@ -1,0 +1,78 @@
+.connectDialog {
+  :global(.MuiBackdrop-root) {
+    opacity: 0.8;
+    background: rgba(0, 0, 0, 0.8) !important;
+    backdrop-filter: blur(4px);
+  }
+}
+
+.modal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 400px;
+  background-color: #0d0b1c;
+  border-radius: 9px;
+  padding: 32px;
+  outline: none;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.modalTitle {
+  color: #e1dfec;
+  font-size: 24px !important;
+  font-weight: 500 !important;
+  margin: 0 !important;
+}
+
+.modalDescription {
+  color: #fff;
+  font-size: 14px !important;
+}
+
+.modalError {
+  color: #ff5252;
+  font-size: 14px !important;
+  margin-top: 8px;
+}
+
+.modalButton {
+  background-color: #1a1a1a !important;
+  color: white !important;
+  width: 100%;
+  height: 48px !important;
+  box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.2), 0px 4px 5px 0px rgba(0, 0, 0, 0.14), 0px 1px 10px 0px rgba(0, 0, 0, 0.12) !important;
+  text-transform: none !important;
+
+  &:hover {
+    background-color: #252525 !important;
+  }
+}
+
+.modalButtonContent {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.modalHelp {
+  color: #fff;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.modalHelpLink {
+  color: #7d67ff;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}

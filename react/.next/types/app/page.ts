@@ -1,4 +1,4 @@
-// File: D:\Desktop\Projetos\swap-v2-next-app\app\page.tsx
+// File: D:\Desktop\Projetos\platform\react\app\page.tsx
 import * as entry from '../../../app/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

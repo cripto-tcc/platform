@@ -1,0 +1,225 @@
+/*!******************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[11].oneOf[9].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[11].oneOf[9].use[3]!./node_modules/next/dist/build/webpack/loaders/resolve-url-loader/index.js??ruleSet[1].rules[11].oneOf[9].use[4]!./node_modules/next/dist/compiled/sass-loader/cjs.js??ruleSet[1].rules[11].oneOf[9].use[5]!./app/components/Sidebar.module.scss ***!
+  \******************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+.Sidebar_sidebar__maaFr {
+  width: 272px;
+  flex-shrink: 0;
+}
+.Sidebar_sidebar__maaFr .MuiDrawer-paper {
+  width: 272px;
+  box-sizing: border-box;
+  background-color: #0d0b1c;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.Sidebar_sidebar__maaFr .MuiList-root {
+  padding: 0;
+}
+
+.Sidebar_logo__C7Ycg {
+  padding: 40px 56px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.Sidebar_logo__icon__MfloP {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+.Sidebar_logo__text__Xms_R {
+  color: #e1dfec;
+  font-size: 16px;
+  font-weight: 400;
+}
+.Sidebar_logo__text--bold__o6jsg {
+  font-weight: 500;
+}
+
+.Sidebar_nav__JM8DS {
+  padding: 24px 0 0 24px;
+  flex: 1;
+  position: relative;
+}
+.Sidebar_nav__item__mpwNu {
+  width: 100%;
+  text-decoration: none;
+}
+.Sidebar_nav__link__ACefA {
+  height: 40px;
+  padding-right: 24px;
+}
+.Sidebar_nav__link__ACefA:hover .Sidebar_nav__text__mN8wR {
+  color: rgba(255, 255, 255, 0.8);
+}
+.Sidebar_nav__itemActive__p42FP .Sidebar_nav__text__mN8wR {
+  color: #fff;
+}
+.Sidebar_nav__icon__byx0y {
+  min-width: 40px;
+}
+.Sidebar_nav__text__mN8wR {
+  font-size: 16px;
+}
+.Sidebar_nav__activeIndicator__R0vWz {
+  position: absolute;
+  right: 0;
+  width: 3px;
+  height: 16px;
+  background-color: #7d67ff;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 2px;
+  margin-top: 4px;
+}
+
+.Sidebar_styledIcon__vIGEa {
+  color: #505050;
+  transition: color 0.2s ease;
+  font-family: "Material Icons";
+  font-size: 24px;
+  line-height: 1;
+}
+
+.Sidebar_footer__MkRj3 {
+  margin-top: auto;
+  padding: 0 24px 32px;
+}
+
+.Sidebar_networkSelect__field__m7uem {
+  color: white;
+  background-color: transparent;
+  height: 56px;
+}
+.Sidebar_networkSelect__field__m7uem .MuiOutlinedInput-notchedOutline {
+  border-color: rgba(255, 255, 255, 0.5);
+}
+.Sidebar_networkSelect__field__m7uem:hover .MuiOutlinedInput-notchedOutline {
+  border-color: rgba(255, 255, 255, 0.8);
+}
+.Sidebar_networkSelect__field__m7uem.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: white;
+}
+.Sidebar_networkSelect__field__m7uem:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+.Sidebar_networkSelect__value__qDL30 {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.Sidebar_networkSelect__icon__fzHHr {
+  width: 24px;
+  height: 24px;
+}
+.Sidebar_networkSelect__item__T08jg {
+  font-size: 14px;
+  color: white;
+}
+.Sidebar_networkSelect__item__T08jg:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.Sidebar_walletAddress__aTgCY {
+  color: #dddddd;
+  margin-top: 24px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.Sidebar_footerMenu__a5I2_ {
+  margin-top: 24px;
+}
+.Sidebar_footerMenu__button__1JhEo {
+  color: #dddddd;
+}
+.Sidebar_footerMenu__button__1JhEo:hover {
+  color: #ff1744;
+}
+.Sidebar_footerMenu__button__1JhEo:hover .Sidebar_footerMenu__text__VYFgr {
+  color: #ff1744;
+}
+.Sidebar_footerMenu__icon__k4AO4 {
+  min-width: 40px;
+}
+.Sidebar_footerMenu__text__VYFgr {
+  font-size: 14px;
+}
+/*!*****************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[11].oneOf[9].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[11].oneOf[9].use[3]!./node_modules/next/dist/build/webpack/loaders/resolve-url-loader/index.js??ruleSet[1].rules[11].oneOf[9].use[4]!./node_modules/next/dist/compiled/sass-loader/cjs.js??ruleSet[1].rules[11].oneOf[9].use[5]!./app/components/ConnectWalletModal.module.scss ***!
+  \*****************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+.ConnectWalletModal_connectDialog__y1bnM .MuiBackdrop-root {
+  opacity: 0.8;
+  background: rgba(0, 0, 0, 0.8) !important;
+  -webkit-backdrop-filter: blur(4px);
+          backdrop-filter: blur(4px);
+}
+
+.ConnectWalletModal_modal__3ljht {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 400px;
+  background-color: #0d0b1c;
+  border-radius: 9px;
+  padding: 32px;
+  outline: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.ConnectWalletModal_modalTitle__23Mbj {
+  color: #e1dfec;
+  font-size: 24px !important;
+  font-weight: 500 !important;
+  margin: 0 !important;
+}
+
+.ConnectWalletModal_modalDescription__4m5XU {
+  color: #fff;
+  font-size: 14px !important;
+}
+
+.ConnectWalletModal_modalError__FbHZO {
+  color: #ff5252;
+  font-size: 14px !important;
+  margin-top: 8px;
+}
+
+.ConnectWalletModal_modalButton__IE0ZB {
+  background-color: #1a1a1a !important;
+  color: white !important;
+  width: 100%;
+  height: 48px !important;
+  box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.2), 0px 4px 5px 0px rgba(0, 0, 0, 0.14), 0px 1px 10px 0px rgba(0, 0, 0, 0.12) !important;
+  text-transform: none !important;
+}
+.ConnectWalletModal_modalButton__IE0ZB:hover {
+  background-color: #252525 !important;
+}
+
+.ConnectWalletModal_modalButtonContent__Kn_cE {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.ConnectWalletModal_modalHelp__yKMX5 {
+  color: #fff;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.ConnectWalletModal_modalHelpLink__dYSEr {
+  color: #7d67ff;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+.ConnectWalletModal_modalHelpLink__dYSEr:hover {
+  opacity: 0.8;
+}

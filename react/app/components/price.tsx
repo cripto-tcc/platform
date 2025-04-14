@@ -68,7 +68,6 @@ export default function PriceView({
 
   const parsedBuyAmount = buyAmount && tradeDirection === "buy" ? parseUnits(buyAmount, buyTokenDecimals).toString() : undefined;
 
-  // Fetch price data and set the buyAmount whenever the sellAmount changes
   useEffect(() => {
     /* 
 

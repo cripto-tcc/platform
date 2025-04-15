@@ -14,17 +14,11 @@
           <div class="message__content">{{ message.content }}</div>
         </div>
 
-        <div v-if="isLoading" class="message assistant">
-          <div class="message__header">
-            <img :src="logoIcon" alt="Assistant" class="message__icon" />
-            <span class="message__role">Assistant - {{ formatTime(new Date()) }}</span>
-          </div>
-          <div class="message__content">
-            <div class="loading-dots">
-              <span></span>
-              <span></span>
-              <span></span>
-            </div>
+        <div v-if="isLoading && !isTyping" class="message assistant loading">
+          <div class="loading-dots">
+            <span></span>
+            <span></span>
+            <span></span>
           </div>
         </div>
       </div>
@@ -54,6 +48,7 @@ const messages = ref<ChatMessage[]>([]);
 const messagesContainer = ref<HTMLElement | null>(null);
 const { walletAddress } = useUserContext();
 const isLoading = ref(false);
+const isTyping = ref(false);
 
 const formatTime = (date: Date) => {
   return new Intl.DateTimeFormat("en-US", {
@@ -91,17 +86,29 @@ const sendMessage = async () => {
       role,
       content,
     }));
-    const response = await getChatCompletion(messagesToSend);
+
     const assistantMessage: ChatMessage = {
       role: "assistant" as const,
-      content: response,
+      content: "",
       timestamp: new Date(),
     };
+
+    console.log("before typing");
     messages.value.push(assistantMessage);
     scrollToBottom();
+
+    await getChatCompletion(messagesToSend, (chunk) => {
+      assistantMessage.content += chunk;
+      isTyping.value = true;
+      isLoading.value = false;
+      messages.value = [...messages.value];
+      scrollToBottom();
+    });
   } catch (error) {
     console.error("Error sending message:", error);
   } finally {
+    console.log("finally");
+    isTyping.value = false;
     isLoading.value = false;
   }
 };
@@ -119,6 +126,7 @@ onMounted(() => {
 
   &__content {
     max-width: 1024px;
+    margin: 0 auto;
     padding: 2rem;
     height: 100%;
     display: flex;
@@ -141,6 +149,7 @@ onMounted(() => {
     overflow-y: auto;
     padding-right: 16px;
     margin-bottom: 24px;
+    width: 100%;
 
     &::-webkit-scrollbar {
       width: 6px;
@@ -172,6 +181,7 @@ onMounted(() => {
         color: #fff;
         font-size: 16px;
         outline: none;
+        min-width: 0;
 
         &::placeholder {
           color: rgba(255, 255, 255, 0.5);
@@ -189,6 +199,7 @@ onMounted(() => {
         justify-content: center;
         transition: color 0.2s;
         font-size: 14px;
+        flex-shrink: 0;
 
         &:hover {
           color: rgba(255, 255, 255, 0.8);
@@ -210,7 +221,9 @@ onMounted(() => {
 
 .message {
   margin-bottom: 24px;
-  max-width: 70%;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
 
   &.user {
     margin-left: auto;
@@ -232,17 +245,21 @@ onMounted(() => {
     }
   }
 
+  &.loading {
+    opacity: 0.8;
+    .message__content {
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+    }
+  }
+
   &__header {
     display: flex;
     align-items: center;
     gap: 8px;
     margin-bottom: 8px;
     font-size: 14px;
-  }
-
-  &__icon {
-    width: 24px;
-    height: 24px;
   }
 
   &__role,
@@ -253,6 +270,14 @@ onMounted(() => {
   &__content {
     border-radius: 8px;
     line-height: 1.5;
+    white-space: pre-wrap;
+    min-width: 0;
+  }
+
+  &__icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
   }
 }
 
@@ -261,6 +286,7 @@ onMounted(() => {
   gap: 4px;
   align-items: center;
   height: 24px;
+  padding: 0;
 
   span {
     width: 8px;

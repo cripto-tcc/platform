@@ -1,82 +1,84 @@
 <template>
   <div class="wallet">
-    <div class="wallet-header">
-      <div class="wallet-address">Wallet > {{ walletAddress }}</div>
-      <div class="wallet-title">Total value</div>
-      <v-skeleton-loader class="wallet-value-loader" v-if="isLoadingAssets" type="image" width="10px" height="10px"></v-skeleton-loader>
-      <div v-else class="wallet-value">{{ totalValue }}</div>
-    </div>
+    <div class="wallet-wrapper">
+      <div class="wallet-header">
+        <div class="wallet-address">Wallet > {{ walletAddress }}</div>
+        <div class="wallet-title">Total value</div>
+        <v-skeleton-loader class="wallet-value-loader" v-if="isLoadingAssets" type="image" width="10px" height="10px"></v-skeleton-loader>
+        <div v-else class="wallet-value">{{ totalValue }}</div>
+      </div>
 
-    <div class="mt-8">
-      <div class="wallet-title">Assets</div>
+      <div class="mt-8">
+        <div class="wallet-title">Assets</div>
 
-      <template v-if="isLoadingAssets">
-        <v-skeleton-loader class="table-loader" type="image" width="100%" height="200px"></v-skeleton-loader>
-      </template>
-      <template v-else>
-        <v-table class="assets-table">
-          <thead>
-            <tr>
-              <th>Tokens</th>
-              <th>Amount</th>
-              <th>Total</th>
-              <th>Value</th>
-              <th>24hr variance</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="token in tokens" :key="token.token_address">
-              <td>
-                <div class="d-flex align-center">
-                  <v-avatar size="30" class="mr-2">
-                    <v-img :src="token.logo || ''" :alt="token.symbol"></v-img>
-                  </v-avatar>
-                  {{ token.name }}
-                </div>
-              </td>
-              <td>{{ token.balance_formatted }} {{ token.symbol }}</td>
-              <td class="text-grey">${{ formatNumber(token.usd_value) }}</td>
-              <td class="text-grey">${{ formatNumber(token.usd_price) }}</td>
-              <td :class="getVarianceClass(token.usd_price_24hr_percent_change)">{{ formatVariance(token.usd_price_24hr_percent_change) }}%</td>
-            </tr>
-          </tbody>
-        </v-table>
-      </template>
-    </div>
+        <template v-if="isLoadingAssets">
+          <v-skeleton-loader class="table-loader" type="image" width="100%" height="200px"></v-skeleton-loader>
+        </template>
+        <template v-else>
+          <v-table class="assets-table">
+            <thead>
+              <tr>
+                <th>Tokens</th>
+                <th>Amount</th>
+                <th>Total</th>
+                <th>Value</th>
+                <th>24hr variance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="token in tokens" :key="token.token_address">
+                <td>
+                  <div class="d-flex align-center">
+                    <v-avatar size="30" class="mr-2">
+                      <v-img :src="token.logo || ''" :alt="token.symbol"></v-img>
+                    </v-avatar>
+                    {{ token.name }}
+                  </div>
+                </td>
+                <td>{{ token.balance_formatted }} {{ token.symbol }}</td>
+                <td class="text-grey">${{ formatNumber(token.usd_value) }}</td>
+                <td class="text-grey">${{ formatNumber(token.usd_price) }}</td>
+                <td :class="getVarianceClass(token.usd_price_24hr_percent_change)">{{ formatVariance(token.usd_price_24hr_percent_change) }}%</td>
+              </tr>
+            </tbody>
+          </v-table>
+        </template>
+      </div>
 
-    <div class="mt-8">
-      <div class="wallet-title">Activity</div>
+      <div class="mt-8">
+        <div class="wallet-title">Activity</div>
 
-      <template v-if="isLoadingTransactions">
-        <v-skeleton-loader class="table-loader" type="image" width="100%" height="300px"></v-skeleton-loader>
-      </template>
-      <template v-else>
-        <v-table class="activity-table">
-          <thead>
-            <tr>
-              <th>Transaction</th>
-              <th>Amount</th>
-              <th>Category</th>
-              <th>Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="transaction in transactions" :key="transaction.hash">
-              <td>
-                <div class="d-flex align-center">
-                  <v-avatar v-if="transaction.erc20_transfers[0]?.token_logo" size="30" class="mr-2">
-                    <v-img :src="transaction.erc20_transfers[0].token_logo" :alt="transaction.erc20_transfers[0].token_symbol"></v-img>
-                  </v-avatar>
-                  {{ transaction.summary }}
-                </div>
-              </td>
-              <td>{{ transaction.erc20_transfers[0]?.value_formatted || "0" }}</td>
-              <td>{{ transaction.category }}</td>
-              <td>{{ formatDate(transaction.block_timestamp) }}</td>
-            </tr>
-          </tbody>
-        </v-table>
-      </template>
+        <template v-if="isLoadingTransactions">
+          <v-skeleton-loader class="table-loader" type="image" width="100%" height="300px"></v-skeleton-loader>
+        </template>
+        <template v-else>
+          <v-table class="activity-table">
+            <thead>
+              <tr>
+                <th>Transaction</th>
+                <th>Amount</th>
+                <th>Category</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="transaction in transactions" :key="transaction.hash">
+                <td>
+                  <div class="d-flex align-center">
+                    <v-avatar v-if="transaction.erc20_transfers[0]?.token_logo" size="30" class="mr-2">
+                      <v-img :src="transaction.erc20_transfers[0].token_logo" :alt="transaction.erc20_transfers[0].token_symbol"></v-img>
+                    </v-avatar>
+                    {{ transaction.summary }}
+                  </div>
+                </td>
+                <td>{{ transaction.erc20_transfers[0]?.value_formatted || "0" }}</td>
+                <td>{{ transaction.category }}</td>
+                <td>{{ formatDate(transaction.block_timestamp) }}</td>
+              </tr>
+            </tbody>
+          </v-table>
+        </template>
+      </div>
     </div>
   </div>
 </template>

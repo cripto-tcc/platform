@@ -132,7 +132,7 @@ const handleLogout = () => {
 };
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .sidebar {
   width: 272px;
   height: 100vh;

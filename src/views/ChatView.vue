@@ -11,7 +11,7 @@
             <img v-if="message.role === 'assistant'" :src="logoIcon" alt="Assistant" class="message__icon" />
             <span class="message__role">{{ message.role === "user" ? "You" : "Assistant" }} - {{ formatTime(message.timestamp) }}</span>
           </div>
-          <div class="message__content">{{ message.content }}</div>
+          <div class="message__content" v-html="formatMessageContent(message.content)"></div>
         </div>
 
         <div v-if="isLoading && !isTyping" class="message assistant loading">
@@ -46,7 +46,7 @@ interface ChatMessage extends Message {
 const userInput = ref("");
 const messages = ref<ChatMessage[]>([]);
 const messagesContainer = ref<HTMLElement | null>(null);
-const { walletAddress } = useUserContext();
+const { walletAddress, activeNetwork } = useUserContext();
 const isLoading = ref(false);
 const isTyping = ref(false);
 
@@ -68,6 +68,10 @@ const scrollToBottom = () => {
   }
 };
 
+const formatMessageContent = (content: string) => {
+  return content.replace(/\*\*(.*?)\*\*/g, '<span class="bold-text">$1</span>');
+};
+
 const sendMessage = async () => {
   if (!userInput.value.trim() || isLoading.value) return;
 
@@ -82,10 +86,6 @@ const sendMessage = async () => {
 
   try {
     isLoading.value = true;
-    const messagesToSend: Message[] = messages.value.map(({ role, content }) => ({
-      role,
-      content,
-    }));
 
     const assistantMessage: ChatMessage = {
       role: "assistant" as const,
@@ -93,17 +93,23 @@ const sendMessage = async () => {
       timestamp: new Date(),
     };
 
-    console.log("before typing");
     messages.value.push(assistantMessage);
     scrollToBottom();
 
-    await getChatCompletion(messagesToSend, (chunk) => {
-      assistantMessage.content += chunk;
-      isTyping.value = true;
-      isLoading.value = false;
-      messages.value = [...messages.value];
-      scrollToBottom();
-    });
+    await getChatCompletion(
+      {
+        walletAddress: walletAddress.value || "",
+        chain: activeNetwork.value.id.toUpperCase(),
+        input: userMessage.content,
+      },
+      (chunk) => {
+        assistantMessage.content += chunk;
+        isTyping.value = true;
+        isLoading.value = false;
+        messages.value = [...messages.value];
+        scrollToBottom();
+      }
+    );
   } catch (error) {
     console.error("Error sending message:", error);
   } finally {
@@ -272,6 +278,11 @@ onMounted(() => {
     line-height: 1.5;
     white-space: pre-wrap;
     min-width: 0;
+
+    :deep(.bold-text) {
+      color: #8247e5;
+      font-weight: 600;
+    }
   }
 
   &__icon {

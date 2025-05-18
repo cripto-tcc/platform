@@ -1,20 +1,24 @@
-import axios from "axios";
-
-const API_URL = "http://localhost:3000";
+const API_URL = "http://127.0.0.1:8000";
 
 export interface Message {
   role: "user" | "assistant" | "system";
   content: string;
 }
 
-export async function getChatCompletion(messages: Message[], onChunk: (chunk: string) => void) {
+export interface ChatRequest {
+  walletAddress: string;
+  chain: string;
+  input: string;
+}
+
+export async function getChatCompletion(request: ChatRequest, onChunk: (chunk: string) => void) {
   try {
-    const response = await fetch(`${API_URL}/api/chat`, {
+    const response = await fetch(`${API_URL}/process`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ messages }),
+      body: JSON.stringify(request),
     });
 
     const reader = response.body?.getReader();

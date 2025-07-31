@@ -11,12 +11,14 @@ export const networks: Network[] = [
     name: "Ethereum",
     icon: ethereumIcon,
     chainId: "0x1",
+    apiId: "eth",
   },
   {
     id: "polygon",
     name: "Polygon",
     icon: polygonIcon,
     chainId: "0x89",
+    apiId: "pol",
     chainConfig: {
       chainId: "0x89",
       chainName: "Polygon",
@@ -34,6 +36,7 @@ export const networks: Network[] = [
     name: "Base",
     icon: baseIcon,
     chainId: "0x2105",
+    apiId: "bas",
     chainConfig: {
       chainId: "0x2105",
       chainName: "Base",
@@ -220,9 +223,18 @@ declare global {
   interface Window {
     phantom?: {
       ethereum?: {
+        getSigner(): unknown;
         isPhantom?: boolean;
         request: (args: {
-          method: "eth_requestAccounts" | "wallet_requestPermissions" | "wallet_disconnect" | "wallet_switchEthereumChain" | "wallet_addEthereumChain";
+          method:
+            | "eth_requestAccounts"
+            | "wallet_requestPermissions"
+            | "wallet_disconnect"
+            | "wallet_switchEthereumChain"
+            | "wallet_addEthereumChain"
+            | "eth_sendTransaction"
+            | "eth_signTransaction"
+            | "eth_getTransactionReceipt";
           params?: any[];
         }) => Promise<any>;
         on: (event: string, callback: (params?: any) => void) => void;

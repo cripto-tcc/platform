@@ -3,6 +3,7 @@ export interface Network {
   name: string;
   icon: string;
   chainId: string;
+  apiId: string; // ID para usar na API local (pol, bas, etc.)
   chainConfig?: {
     chainId: string;
     chainName: string;

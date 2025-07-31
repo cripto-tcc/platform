@@ -12,6 +12,16 @@
             <span class="message__role">{{ message.role === "user" ? "You" : "Assistant" }} - {{ formatTime(message.timestamp) }}</span>
           </div>
           <div class="message__content" v-html="formatMessageContent(message.content)"></div>
+
+          <!-- Transaction confirmation buttons -->
+          <div v-if="message.pendingTransaction" class="action-buttons" :class="{ cancelled: message.cancelled }">
+            <button @click="confirmTransaction(message.pendingTransaction)" class="confirm-btn" :disabled="isTransactionLoading || message.cancelled">
+              {{ isTransactionLoading ? "LOADING..." : message.cancelled ? "DECLINED" : "CONFIRM" }}
+            </button>
+            <button @click="cancelTransaction(index)" class="cancel-btn" :disabled="isTransactionLoading || message.cancelled">
+              {{ message.cancelled ? "DECLINED" : "CANCEL" }}
+            </button>
+          </div>
         </div>
 
         <div v-if="isLoading && !isTyping" class="message assistant loading">
@@ -35,12 +45,15 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { getChatCompletion, type Message } from "../services/openai";
+import { getChatCompletion, type Message, type TransactionData } from "../services/openai";
 import { useUserContext } from "../composables/useUserContext";
+import { WalletService } from "../services/wallet";
 import logoIcon from "../assets/logo.svg";
 
 interface ChatMessage extends Message {
   timestamp: Date;
+  pendingTransaction?: TransactionData;
+  cancelled?: boolean;
 }
 
 const userInput = ref("");
@@ -49,6 +62,7 @@ const messagesContainer = ref<HTMLElement | null>(null);
 const { walletAddress, activeNetwork } = useUserContext();
 const isLoading = ref(false);
 const isTyping = ref(false);
+const isTransactionLoading = ref(false);
 
 const formatTime = (date: Date) => {
   return new Intl.DateTimeFormat("en-US", {
@@ -99,13 +113,18 @@ const sendMessage = async () => {
     await getChatCompletion(
       {
         walletAddress: walletAddress.value || "",
-        chain: activeNetwork.value.id.toUpperCase(),
+        chain: activeNetwork.value.apiId.toUpperCase(),
         input: userMessage.content,
       },
       (chunk) => {
         assistantMessage.content += chunk;
         isTyping.value = true;
         isLoading.value = false;
+        messages.value = [...messages.value];
+        scrollToBottom();
+      },
+      (transaction) => {
+        assistantMessage.pendingTransaction = transaction;
         messages.value = [...messages.value];
         scrollToBottom();
       }
@@ -116,6 +135,46 @@ const sendMessage = async () => {
     console.log("finally");
     isTyping.value = false;
     isLoading.value = false;
+  }
+};
+
+const confirmTransaction = async (transaction: TransactionData) => {
+  try {
+    isTransactionLoading.value = true;
+
+    const txHash = await WalletService.sendTransaction(transaction, activeNetwork.value);
+
+    // Add success message
+    const successMessage: ChatMessage = {
+      role: "assistant",
+      content: `✅ Transaction sent successfully!\n\nTransaction Hash: ${txHash}\n\nYou can track the transaction on the blockchain explorer.`,
+      timestamp: new Date(),
+    };
+
+    messages.value.push(successMessage);
+    scrollToBottom();
+  } catch (error) {
+    console.error("Error confirming transaction:", error);
+
+    // Add error message
+    const errorMessage: ChatMessage = {
+      role: "assistant",
+      content: `❌ Transaction failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      timestamp: new Date(),
+    };
+
+    messages.value.push(errorMessage);
+    scrollToBottom();
+  } finally {
+    isTransactionLoading.value = false;
+  }
+};
+
+const cancelTransaction = (messageIndex: number) => {
+  // Mark the transaction as cancelled instead of removing it
+  if (messages.value[messageIndex]) {
+    messages.value[messageIndex].cancelled = true;
+    messages.value = [...messages.value];
   }
 };
 
@@ -289,6 +348,66 @@ onMounted(() => {
     width: 24px;
     height: 24px;
     flex-shrink: 0;
+  }
+}
+
+.action-buttons {
+  margin-top: 16px;
+  display: flex;
+  gap: 12px;
+
+  &.cancelled {
+    opacity: 0.6;
+
+    .confirm-btn,
+    .cancel-btn {
+      background: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      cursor: not-allowed;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.5);
+      }
+    }
+  }
+
+  .confirm-btn,
+  .cancel-btn {
+    flex: 1;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  .confirm-btn {
+    background: #8247e5;
+    color: white;
+
+    &:hover:not(:disabled) {
+      background: #6b3a9e;
+    }
+  }
+
+  .cancel-btn {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+
+    &:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+    }
   }
 }
 

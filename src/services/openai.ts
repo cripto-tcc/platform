@@ -11,7 +11,39 @@ export interface ChatRequest {
   input: string;
 }
 
-export async function getChatCompletion(request: ChatRequest, onChunk: (chunk: string) => void) {
+export interface TransactionData {
+  transactionRequest: {
+    value: string;
+    to: string;
+    data: string;
+    chainId: number;
+    gasPrice: string;
+    gasLimit: string;
+    from: string;
+  };
+  fromToken: string;
+  toToken: string;
+  tool: string;
+  estimate: {
+    tool: string;
+    approvalAddress: string;
+    toAmountMin: string;
+    toAmount: number;
+    fromAmount: number;
+    feeCosts: any[];
+    gasCosts: any[];
+    executionDuration: number;
+    fromAmountUSD: number;
+    toAmountUSD: number;
+  };
+}
+
+export interface TransactionMessage {
+  type: "transaction";
+  data: TransactionData;
+}
+
+export async function getChatCompletion(request: ChatRequest, onChunk: (chunk: string) => void, onTransaction?: (transaction: TransactionData) => void) {
   try {
     const response = await fetch(`${API_URL}/process`, {
       method: "POST",
@@ -42,7 +74,11 @@ export async function getChatCompletion(request: ChatRequest, onChunk: (chunk: s
 
           try {
             const parsed = JSON.parse(data);
-            if (parsed.content) {
+
+            // Check if it's a transaction message
+            if (parsed.type === "transaction" && onTransaction) {
+              onTransaction(parsed.data);
+            } else if (parsed.content) {
               onChunk(parsed.content);
             }
           } catch (e) {

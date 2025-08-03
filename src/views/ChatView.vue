@@ -45,10 +45,10 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { getChatCompletion, type Message, type TransactionData } from "../services/openai";
-import { useUserContext } from "../composables/useUserContext";
-import { WalletService } from "../services/wallet";
-import logoIcon from "../assets/logo.svg";
+import { getChatCompletion, type Message, type TransactionData } from "@/src/services/openai";
+import { useUserContext } from "@/src/composables/useUserContext";
+import { WalletService } from "@/src/services/wallet";
+import logoIcon from "@/src/assets/logo.svg";
 
 interface ChatMessage extends Message {
   timestamp: Date;
@@ -144,7 +144,6 @@ const confirmTransaction = async (transaction: TransactionData) => {
 
     const txHash = await WalletService.sendTransaction(transaction, activeNetwork.value);
 
-    // Add success message
     const successMessage: ChatMessage = {
       role: "assistant",
       content: `✅ Transaction sent successfully!\n\nTransaction Hash: ${txHash}\n\nYou can track the transaction on the blockchain explorer.`,
@@ -156,7 +155,6 @@ const confirmTransaction = async (transaction: TransactionData) => {
   } catch (error) {
     console.error("Error confirming transaction:", error);
 
-    // Add error message
     const errorMessage: ChatMessage = {
       role: "assistant",
       content: `❌ Transaction failed: ${error instanceof Error ? error.message : "Unknown error"}`,
@@ -171,7 +169,6 @@ const confirmTransaction = async (transaction: TransactionData) => {
 };
 
 const cancelTransaction = (messageIndex: number) => {
-  // Mark the transaction as cancelled instead of removing it
   if (messages.value[messageIndex]) {
     messages.value[messageIndex].cancelled = true;
     messages.value = [...messages.value];

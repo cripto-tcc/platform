@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
-import { useUserContext } from "../composables/useUserContext";
-import ChatView from "../views/ChatView.vue";
-import WalletView from "../views/WalletView.vue";
+import { useUserContext } from "@/src/composables/useUserContext";
+import ChatView from "@/src/views/ChatView.vue";
+import WalletView from "@/src/views/WalletView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

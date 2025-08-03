@@ -1,9 +1,9 @@
 import { ref, computed } from "vue";
-import ethereumIcon from "../assets/ethereum.svg";
-import polygonIcon from "../assets/polygon.svg";
-import baseIcon from "../assets/base.svg";
-import { AuthService } from "../services/auth";
-import { Network } from "../types/network";
+import ethereumIcon from "@/src/assets/ethereum.svg";
+import polygonIcon from "@/src/assets/polygon.svg";
+import baseIcon from "@/src/assets/base.svg";
+import { AuthService } from "@/src/services/auth";
+import { Network } from "@/src/types/network";
 
 export const networks: Network[] = [
   {

@@ -73,9 +73,9 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useRoute } from "vue-router";
-import { useUserContext } from "../composables/useUserContext";
-import logoIcon from "../assets/logo.svg";
-import { Network } from "../types/network";
+import { useUserContext } from "@/src/composables/useUserContext";
+import logoIcon from "@/src/assets/logo.svg";
+import { Network } from "@/src/types/network";
 
 const route = useRoute();
 const currentRoute = computed(() => route.path);

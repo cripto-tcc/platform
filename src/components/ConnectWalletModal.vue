@@ -7,7 +7,7 @@
 
         <v-btn class="modal__button" color="#1A1A1A" block height="48" @click="handleConnect" :loading="isConnecting">
           <div class="modal__button-content">
-            <img src="../assets/phantom.svg" alt="Phantom" class="modal__button-icon" />
+            <img src="@/src/assets/phantom.svg" alt="Phantom" class="modal__button-icon" />
             <span>Connect with Phantom</span>
           </div>
         </v-btn>
@@ -27,7 +27,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { useUserContext } from "../composables/useUserContext";
+import { useUserContext } from "@/src/composables/useUserContext";
 
 const { login } = useUserContext();
 const isConnecting = ref(false);

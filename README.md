@@ -23,16 +23,8 @@ npm install
 ```
 
 3. Configure as variáveis de ambiente:
-   Crie um arquivo `.env.development` na raiz do projeto com as seguintes variáveis:
+   Crie um arquivo `.env` na raiz do projeto com as variáveis presentes no `.env.example`:
 
-```env
-VITE_FIREBASE_API_KEY=sua_api_key
-VITE_FIREBASE_AUTH_DOMAIN=seu_auth_domain
-VITE_FIREBASE_PROJECT_ID=seu_project_id
-VITE_FIREBASE_STORAGE_BUCKET=seu_storage_bucket
-VITE_FIREBASE_MESSAGING_SENDER_ID=seu_messaging_sender_id
-VITE_FIREBASE_APP_ID=seu_app_id
-```
 
 4. Inicie o servidor de desenvolvimento:
 

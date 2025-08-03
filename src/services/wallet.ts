@@ -103,11 +103,8 @@ export class WalletService {
       };
 
       if (transactionData.estimate.approvalAddress) {
-        console.log("Approving token");
-        console.log("transactionData", transactionData);
         const tokenContract = new ethers.Contract(transactionData.transactionRequest.fromTokenInfo?.contract as string, ERC20_ABI, signer);
 
-        console.log("from amount", transactionData.estimate.fromAmount);
         await tokenContract.approve(transactionData.estimate.approvalAddress, BigInt(transactionData.estimate.fromAmount), {
           gasLimit: transactionData.transactionRequest.gasLimit || ethers.toBeHex(10000000),
           gasPrice: gasPrice,

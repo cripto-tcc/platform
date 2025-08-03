@@ -19,35 +19,13 @@ export const networks: Network[] = [
     icon: polygonIcon,
     chainId: '0x89',
     apiId: 'pol',
-    chainConfig: {
-      chainId: '0x89',
-      chainName: 'Polygon',
-      nativeCurrency: {
-        name: 'MATIC',
-        symbol: 'MATIC',
-        decimals: 18,
-      },
-      rpcUrls: ['https://polygon-rpc.com/'],
-      blockExplorerUrls: ['https://polygonscan.com/'],
-    },
   },
   {
     id: 'base',
     name: 'Base',
     icon: baseIcon,
     chainId: '0x2105',
-    apiId: 'bas',
-    chainConfig: {
-      chainId: '0x2105',
-      chainName: 'Base',
-      nativeCurrency: {
-        name: 'ETH',
-        symbol: 'ETH',
-        decimals: 18,
-      },
-      rpcUrls: ['https://mainnet.base.org'],
-      blockExplorerUrls: ['https://basescan.org'],
-    },
+    apiId: 'bas'
   },
 ]
 
@@ -58,18 +36,6 @@ const isFirebaseReady = ref(false)
 const isLoading = ref(false)
 
 export function useUserContext() {
-  let provider: NonNullable<Window['phantom']>['ethereum'] | null = null
-
-  const handleAccountsChanged = (accounts: string[]) => {
-    if (accounts.length === 0) {
-      logout()
-    }
-  }
-
-  const handleDisconnect = () => {
-    logout()
-  }
-
   const restoreSavedNetwork = async () => {
     const savedNetworkId = localStorage.getItem('activeNetworkId')
     const network = savedNetworkId
@@ -111,33 +77,17 @@ export function useUserContext() {
     })
   }
 
-  const setupWalletListeners = () => {
-    provider = window.phantom?.ethereum || null
-    if (provider) {
-      provider.on('accountsChanged', handleAccountsChanged)
-      provider.on('disconnect', handleDisconnect)
-    }
-  }
-
   const initialize = async () => {
     try {
       isLoading.value = true
 
       await restoreSavedNetwork()
       await setupAuthState()
-      setupWalletListeners()
     } catch (error) {
       console.error('Error initializing Firebase:', error)
       isFirebaseReady.value = false
     } finally {
       isLoading.value = false
-    }
-  }
-
-  const cleanup = () => {
-    if (provider) {
-      provider.removeListener('accountsChanged', handleAccountsChanged)
-      provider.removeListener('disconnect', handleDisconnect)
     }
   }
 
@@ -220,7 +170,6 @@ export function useUserContext() {
     login,
     logout,
     initialize,
-    cleanup,
   }
 }
 

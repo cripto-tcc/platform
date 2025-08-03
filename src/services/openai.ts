@@ -20,6 +20,12 @@ export interface TransactionData {
     gasPrice: string;
     gasLimit: string;
     from: string;
+    isNativeToken: boolean;
+    fromTokenInfo?: {
+      contract: string;
+      decimals: number;
+      name: string;
+    };
   };
   fromToken: string;
   toToken: string;
@@ -35,6 +41,9 @@ export interface TransactionData {
     executionDuration: number;
     fromAmountUSD: number;
     toAmountUSD: number;
+  };
+  action: {
+    fromAmount: string;
   };
 }
 

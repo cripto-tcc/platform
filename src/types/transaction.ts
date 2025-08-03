@@ -5,6 +5,12 @@ export interface TransactionRequest {
   gasPrice: string;
   gasLimit: string;
   from: string;
+  isNativeToken?: boolean;
+  fromTokenInfo?: {
+    contract: string;
+    decimals: number;
+    name: string;
+  };
 }
 
 export interface TokenInfo {

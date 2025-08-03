@@ -36,7 +36,7 @@
             class="network-select__field"
             hide-details
             :custom-styles="selectStyles"
-            @update:model-value="handleNetworkChange"
+            @update:model-value="(item) => setActiveNetwork(item.id)"
             return-object
             single-select
           >
@@ -59,7 +59,7 @@
           <div class="wallet-address">Connected: {{ truncatedAddress }}</div>
 
           <div class="footer-menu">
-            <button class="footer-menu__button footer-menu__button--logout" @click="handleLogout">
+            <button class="footer-menu__button footer-menu__button--logout" @click="logout">
               <v-icon icon="mdi-logout" color="white" size="24" />
               <span>Log Out</span>
             </button>
@@ -75,7 +75,6 @@ import { ref, computed } from "vue";
 import { useRoute } from "vue-router";
 import { useUserContext } from "@/src/composables/useUserContext";
 import logoIcon from "@/src/assets/logo.svg";
-import { Network } from "@/src/types/network";
 
 const route = useRoute();
 const currentRoute = computed(() => route.path);
@@ -120,16 +119,6 @@ const indicatorStyle = computed(() => {
     transform: `translateY(${topOffset}px)`,
   };
 });
-
-const handleNetworkChange = async (network: Network | null) => {
-  if (network) {
-    await setActiveNetwork(network.id);
-  }
-};
-
-const handleLogout = () => {
-  logout();
-};
 </script>
 
 <style lang="scss" scoped>

@@ -46,7 +46,6 @@ const handleConnect = async () => {
 
     await login();
   } catch (error: any) {
-    console.error("Connection error:", error);
     errorMessage.value = error.message || "Failed to connect to wallet. Please try again.";
   } finally {
     isConnecting.value = false;

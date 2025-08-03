@@ -1,6 +1,12 @@
 <template>
   <v-app>
-    <v-overlay v-if="!isFirebaseReady" :model-value="isLoading" class="align-center justify-center" persistent scrim="rgba(0,0,0,0.8)">
+    <v-overlay
+      v-if="!isFirebaseReady"
+      :model-value="isLoading"
+      class="align-center justify-center"
+      persistent
+      scrim="rgba(0,0,0,0.8)"
+    >
       <div class="loading-container">
         <v-progress-circular size="64" color="#0d0b1c" indeterminate />
       </div>
@@ -17,40 +23,41 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted } from "vue";
-import { RouterView } from "vue-router";
-import { useUserContext } from "@/src/composables/useUserContext";
-import ConnectWalletModal from "@/src/components/ConnectWalletModal.vue";
-import Sidebar from "@/src/components/Sidebar.vue";
+  import { onMounted, onUnmounted } from 'vue'
+  import { RouterView } from 'vue-router'
+  import { useUserContext } from '@/src/composables/useUserContext'
+  import ConnectWalletModal from '@/src/components/ConnectWalletModal.vue'
+  import Sidebar from '@/src/components/Sidebar.vue'
 
-const { isLoggedIn, isFirebaseReady, isLoading, initialize, cleanup } = useUserContext();
+  const { isLoggedIn, isFirebaseReady, isLoading, initialize, cleanup } =
+    useUserContext()
 
-onMounted(() => {
-  initialize();
-});
+  onMounted(() => {
+    initialize()
+  })
 
-onUnmounted(() => {
-  cleanup();
-});
+  onUnmounted(() => {
+    cleanup()
+  })
 </script>
 
 <style scoped>
-.app {
-  display: flex;
-  min-height: 100vh;
-  background-color: #0d0b1c;
-}
+  .app {
+    display: flex;
+    min-height: 100vh;
+    background-color: #0d0b1c;
+  }
 
-.main {
-  flex: 1;
-  margin-left: 272px;
-}
+  .main {
+    flex: 1;
+    margin-left: 272px;
+  }
 
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
+  .loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
 </style>

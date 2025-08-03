@@ -1,5 +1,5 @@
 export interface AuthSession {
-  address: string;
-  network: string;
-  timestamp: number;
+  address: string
+  network: string
+  timestamp: number
 }

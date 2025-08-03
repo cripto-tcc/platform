@@ -1,34 +1,34 @@
-import { createRouter, createWebHistory } from "vue-router";
-import { useUserContext } from "@/src/composables/useUserContext";
-import ChatView from "@/src/views/ChatView.vue";
-import WalletView from "@/src/views/WalletView.vue";
+import { createRouter, createWebHistory } from 'vue-router'
+import { useUserContext } from '@/src/composables/useUserContext'
+import ChatView from '@/src/views/ChatView.vue'
+import WalletView from '@/src/views/WalletView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: "/",
-      name: "chat",
+      path: '/',
+      name: 'chat',
       component: ChatView,
       meta: { requiresAuth: true },
     },
     {
-      path: "/wallet",
-      name: "wallet",
+      path: '/wallet',
+      name: 'wallet',
       component: WalletView,
       meta: { requiresAuth: true },
     },
   ],
-});
+})
 
 router.beforeEach((to, _from, next) => {
-  const { isLoggedIn } = useUserContext();
+  const { isLoggedIn } = useUserContext()
 
   if (to.meta.requiresAuth && !isLoggedIn.value) {
-    next();
+    next()
   } else {
-    next();
+    next()
   }
-});
+})
 
-export default router;
+export default router

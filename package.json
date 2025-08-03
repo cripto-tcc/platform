@@ -9,9 +9,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@ethersproject/providers": "^5.8.0",
     "@firebase/auth": "^1.9.1",
     "@mdi/font": "^7.4.47",
     "axios": "^1.8.4",
+    "ethers": "^6.15.0",
     "firebase": "^11.4.0",
     "openai": "^4.94.0",
     "sass": "^1.85.1",

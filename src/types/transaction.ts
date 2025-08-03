@@ -1,8 +1,7 @@
 export interface TransactionRequest {
   value: string;
   to: string;
-  data: string;
-  chainId: number;
+  data?: string;
   gasPrice: string;
   gasLimit: string;
   from: string;

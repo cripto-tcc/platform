@@ -19,46 +19,22 @@ export class WalletService {
    * @param provider The Phantom provider
    * @returns Promise<string> The gas price in hex format
    */
-  private static async getGasPrice(provider: any): Promise<string> {
-    try {
-      // Create an ethers provider from the Phantom provider
-      const ethersProvider = new ethers.BrowserProvider(provider)
-
-      // Get the current fee data which includes gas price
-      const feeData = await ethersProvider.getFeeData()
-
-      // Use gasPrice if available, otherwise use maxFeePerGas
-      const gasPrice = feeData.gasPrice || feeData.maxFeePerGas
-
-      if (!gasPrice) {
-        throw new Error('Could not get gas price from network')
-      }
-
-      // Convert to hex format
-      return ethers.toBeHex(gasPrice)
-    } catch (error) {
-      console.error('Error getting gas price:', error)
-      // Fallback to a default gas price if we can't get it from the network
-      return ethers.toBeHex(ethers.parseUnits('20', 'gwei'))
-    }
-  }
 
   /**
    * Sends a native token transaction (ETH, MATIC, etc.)
    * @param transactionData The transaction data
    * @param provider The wallet provider
-   * @param gasPrice The gas price
    * @returns Promise<string> Transaction hash
    */
   private static async sendNativeTokenTransaction(
     transactionData: TransactionData,
-    provider: any,
-    gasPrice: string
+    provider: any
   ): Promise<string> {
     const transaction: TransactionRequest = {
       gasLimit:
-        transactionData.transactionRequest.gasLimit || ethers.toBeHex(10000000),
-      gasPrice: gasPrice,
+        transactionData.transactionRequest.gasLimit ||
+        ethers.toBeHex(10000000),
+      gasPrice: transactionData.transactionRequest.gasPrice,
       to: transactionData.transactionRequest.to,
       from: transactionData.transactionRequest.from,
       value: transactionData.transactionRequest.value,
@@ -83,13 +59,11 @@ export class WalletService {
    * Sends an ERC-20 token transaction
    * @param transactionData The transaction data
    * @param provider The wallet provider
-   * @param gasPrice The gas price
    * @returns Promise<string> Transaction hash
    */
   private static async sendERC20TokenTransaction(
     transactionData: TransactionData,
-    provider: any,
-    gasPrice: string
+    provider: any
   ): Promise<string> {
     const ethersProvider = new ethers.BrowserProvider(provider)
     const signer = await ethersProvider.getSigner()
@@ -107,7 +81,7 @@ export class WalletService {
         gasLimit:
           transactionData.transactionRequest.gasLimit ||
           ethers.toBeHex(10000000),
-        gasPrice: gasPrice,
+        gasPrice: transactionData.transactionRequest.gasPrice,
         to: transactionData.transactionRequest.to,
         from: transactionData.transactionRequest.from,
         value: transactionData.transactionRequest.value,
@@ -128,7 +102,7 @@ export class WalletService {
             gasLimit:
               transactionData.transactionRequest.gasLimit ||
               ethers.toBeHex(10000000),
-            gasPrice: gasPrice,
+            gasPrice: transactionData.transactionRequest.gasPrice,
           }
         )
       }
@@ -155,9 +129,7 @@ export class WalletService {
 
       console.log(`Sending ${amount} tokens to ${recipient}`)
       console.log(`Amount hex: ${amountHex}, Amount BigInt: ${amount}`)
-      console.log(
-        `GasPrice hex: ${gasPrice}, GasPrice BigInt: ${ethers.getBigInt(gasPrice)}`
-      )
+
       console.log(
         `GasLimit hex: ${transactionData.transactionRequest.gasLimit}, GasLimit BigInt: ${
           transactionData.transactionRequest.gasLimit
@@ -178,7 +150,7 @@ export class WalletService {
         gasLimit: transactionData.transactionRequest.gasLimit
           ? ethers.getBigInt(transactionData.transactionRequest.gasLimit)
           : 100000,
-        gasPrice: ethers.getBigInt(gasPrice), // Convert hex gasPrice to BigInt
+        gasPrice: ethers.getBigInt(transactionData.transactionRequest.gasPrice), // Convert hex gasPrice to BigInt
       })
 
       return tx.hash
@@ -197,7 +169,7 @@ export class WalletService {
 
     try {
       // Check if we need to switch networks
-      if (activeNetwork && activeNetwork.id !== 'eth') {
+      if (activeNetwork) {
         try {
           await provider.request({
             method: 'wallet_switchEthereumChain',
@@ -216,12 +188,6 @@ export class WalletService {
         }
       }
 
-      // Get gas price if not provided
-      let gasPrice = transactionData.transactionRequest.gasPrice
-      if (!gasPrice) {
-        gasPrice = await this.getGasPrice(provider)
-      }
-
       // Use the isNativeToken flag from the backend
       const isNative = transactionData.transactionRequest.isNativeToken
 
@@ -236,18 +202,10 @@ export class WalletService {
 
       if (isNative) {
         // Send native token transaction (ETH, MATIC, etc.)
-        return await this.sendNativeTokenTransaction(
-          transactionData,
-          provider,
-          gasPrice
-        )
+        return await this.sendNativeTokenTransaction(transactionData, provider)
       } else {
         // Send ERC-20 token transaction (USDC, USDT, etc.)
-        return await this.sendERC20TokenTransaction(
-          transactionData,
-          provider,
-          gasPrice
-        )
+        return await this.sendERC20TokenTransaction(transactionData, provider)
       }
     } catch (error) {
       console.error('Error sending transaction:', error)

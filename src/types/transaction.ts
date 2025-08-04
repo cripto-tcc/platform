@@ -1,10 +1,12 @@
 export interface TransactionRequest {
+  chainId?: string
   value: string
   to: string
   data?: string
   gasPrice: string
   gasLimit: string
   from: string
+  nonce?: string
   isNativeToken?: boolean
   fromTokenInfo?: {
     contract: string

@@ -31,14 +31,14 @@ export class WalletService {
     provider: any
   ): Promise<string> {
     const transaction: TransactionRequest = {
-      gasLimit:
-        transactionData.transactionRequest.gasLimit ||
-        ethers.toBeHex(10000000),
+      gasLimit: transactionData.transactionRequest.gasLimit,
       gasPrice: transactionData.transactionRequest.gasPrice,
       to: transactionData.transactionRequest.to,
       from: transactionData.transactionRequest.from,
       value: transactionData.transactionRequest.value,
     }
+
+    console.log('Native token transaction:', transaction)
 
     // Add data if it exists
     if (transactionData.transactionRequest.data) {
@@ -78,15 +78,15 @@ export class WalletService {
 
     if (transactionData.transactionRequest.data) {
       const transaction = {
-        gasLimit:
-          transactionData.transactionRequest.gasLimit ||
-          ethers.toBeHex(10000000),
+        gasLimit: transactionData.transactionRequest.gasLimit,
         gasPrice: transactionData.transactionRequest.gasPrice,
         to: transactionData.transactionRequest.to,
         from: transactionData.transactionRequest.from,
         value: transactionData.transactionRequest.value,
         data: transactionData.transactionRequest.data, // Use the data from LIFI
       }
+
+      console.log('ERC20 token transaction:', transaction)
 
       if (transactionData.estimate.approvalAddress) {
         const tokenContract = new ethers.Contract(
@@ -99,9 +99,7 @@ export class WalletService {
           transactionData.estimate.approvalAddress,
           BigInt(transactionData.estimate.fromAmount),
           {
-            gasLimit:
-              transactionData.transactionRequest.gasLimit ||
-              ethers.toBeHex(10000000),
+            gasLimit: transactionData.transactionRequest.gasLimit,
             gasPrice: transactionData.transactionRequest.gasPrice,
           }
         )
@@ -130,14 +128,6 @@ export class WalletService {
       console.log(`Sending ${amount} tokens to ${recipient}`)
       console.log(`Amount hex: ${amountHex}, Amount BigInt: ${amount}`)
 
-      console.log(
-        `GasLimit hex: ${transactionData.transactionRequest.gasLimit}, GasLimit BigInt: ${
-          transactionData.transactionRequest.gasLimit
-            ? ethers.getBigInt(transactionData.transactionRequest.gasLimit)
-            : 100000
-        }`
-      )
-
       // Create contract instance
       const tokenContract = new ethers.Contract(
         tokenContractAddress,
@@ -147,9 +137,7 @@ export class WalletService {
 
       // Execute the transfer using ethers contract
       const tx = await tokenContract.transfer(recipient, amount, {
-        gasLimit: transactionData.transactionRequest.gasLimit
-          ? ethers.getBigInt(transactionData.transactionRequest.gasLimit)
-          : 100000,
+        gasLimit: ethers.getBigInt(transactionData.transactionRequest.gasLimit),
         gasPrice: ethers.getBigInt(transactionData.transactionRequest.gasPrice), // Convert hex gasPrice to BigInt
       })
 

@@ -2,7 +2,7 @@
 
 ### Pré-requisitos
 
-- Node.js (v16 ou superior)
+- Node.js (v18 ou superior)
 - NPM ou Yarn
 - Carteira Phantom instalada no navegador
 - Projeto criado no Firebase Console

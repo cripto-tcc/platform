@@ -4,6 +4,8 @@ import polygonIcon from '@/src/assets/polygon.svg'
 import baseIcon from '@/src/assets/base.svg'
 import { AuthService } from '@/src/services/auth'
 import { Network } from '@/src/types/network'
+import type { PhantomProvider } from '@/src/types/global'
+import { getPhantomProvider } from '@/src/helpers/getProvider'
 
 export const networks: Network[] = [
   {
@@ -25,7 +27,7 @@ export const networks: Network[] = [
     name: 'Base',
     icon: baseIcon,
     chainId: '0x2105',
-    apiId: 'bas'
+    apiId: 'bas',
   },
 ]
 
@@ -38,22 +40,13 @@ const isLoading = ref(false)
 export function useUserContext() {
   const restoreSavedNetwork = async () => {
     const savedNetworkId = localStorage.getItem('activeNetworkId')
-    const network = savedNetworkId
-      ? networks.find(n => n.id === savedNetworkId)
-      : networks[0]
+    const network = networks.find(n => n.id === savedNetworkId) || networks[0]
 
-    if (network) {
-      activeNetwork.value = network
+    activeNetwork.value = network
 
-      if (window.phantom?.ethereum && network.id !== 'ethereum') {
-        try {
-          await setActiveNetwork(network.id)
-        } catch (error) {
-          console.error('Failed to restore network:', error)
-          activeNetwork.value = networks[0]
-          localStorage.setItem('activeNetworkId', networks[0].id)
-        }
-      }
+    if (window.phantom?.ethereum) {
+      await setActiveNetwork(network.id)
+      localStorage.setItem('activeNetworkId', network.id)
     }
   }
 
@@ -99,29 +92,39 @@ export function useUserContext() {
     }
   }
 
+  const requestAccounts = async (provider: PhantomProvider) => {
+    const accounts = await provider.request({
+      method: 'eth_requestAccounts',
+    })
+
+    if (!accounts?.[0]) {
+      throw new Error('No accounts found')
+    }
+
+    return accounts[0]
+  }
+
+  const createUserSession = async (address: string) => {
+    const session = await AuthService.loginWithPhantom(
+      address,
+      activeNetwork.value.id
+    )
+
+    walletAddress.value = session.address
+    isLoggedIn.value = true
+
+    return session
+  }
+
   const login = async () => {
     try {
       isLoading.value = true
-      const provider = window.phantom?.ethereum
-      if (!provider) {
-        throw new Error('Phantom wallet is not installed!')
-      }
 
-      const accounts = await provider.request({
-        method: 'eth_requestAccounts',
-      })
+      const provider = getPhantomProvider()
+      const accountAddress = await requestAccounts(provider)
+      const session = await createUserSession(accountAddress)
 
-      if (accounts[0]) {
-        const session = await AuthService.loginWithPhantom(
-          accounts[0],
-          activeNetwork.value.id
-        )
-        walletAddress.value = session.address
-        isLoggedIn.value = true
-        return session
-      }
-
-      throw new Error('No accounts found')
+      return session
     } catch (error) {
       console.error('Error connecting to wallet:', error)
       throw error
@@ -134,15 +137,6 @@ export function useUserContext() {
     try {
       isLoading.value = true
       await AuthService.logout()
-
-      if (activeNetwork.value.id !== 'ethereum') {
-        try {
-          await setActiveNetwork('ethereum')
-        } catch (error) {
-          console.error('Failed to switch back to Ethereum:', error)
-        }
-      }
-
       walletAddress.value = null
       isLoggedIn.value = false
     } catch (error) {
@@ -170,33 +164,5 @@ export function useUserContext() {
     login,
     logout,
     initialize,
-  }
-}
-
-declare global {
-  interface Window {
-    phantom?: {
-      ethereum?: {
-        getSigner(): unknown
-        isPhantom?: boolean
-        request: (args: {
-          method:
-            | 'eth_requestAccounts'
-            | 'wallet_requestPermissions'
-            | 'wallet_disconnect'
-            | 'wallet_switchEthereumChain'
-            | 'wallet_addEthereumChain'
-            | 'eth_sendTransaction'
-            | 'eth_signTransaction'
-            | 'eth_getTransactionReceipt'
-          params?: any[]
-        }) => Promise<any>
-        on: (event: string, callback: (params?: any) => void) => void
-        removeListener: (
-          event: string,
-          callback: (params?: any) => void
-        ) => void
-      }
-    }
   }
 }

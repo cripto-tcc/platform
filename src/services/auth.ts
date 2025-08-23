@@ -1,11 +1,11 @@
-import { auth } from '../config/firebase'
+import { auth } from '@/src/config/firebase'
+import type { AuthSession } from '@/src/types/auth'
 import {
   onAuthStateChanged,
   signInAnonymously,
   signOut as firebaseSignOut,
   updateProfile,
 } from 'firebase/auth'
-import { AuthSession } from '../types/auth'
 
 export class AuthService {
   static async testConnection(): Promise<boolean> {
@@ -22,9 +22,6 @@ export class AuthService {
     network: string
   ): Promise<AuthSession> {
     try {
-      const provider = window.phantom?.ethereum
-      if (!provider) throw new Error('Phantom não está instalada')
-
       const { user } = await signInAnonymously(auth)
 
       await updateProfile(user, {

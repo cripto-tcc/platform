@@ -95,7 +95,7 @@
     getChatCompletion,
     type Message,
     type TransactionData,
-  } from '@/src/services/openai'
+  } from '@/src/services/backend'
   import { useUserContext } from '@/src/composables/useUserContext'
   import { WalletService } from '@/src/services/wallet'
   import logoIcon from '@/src/assets/logo.svg'

@@ -23,21 +23,17 @@
 </template>
 
 <script setup lang="ts">
-  import { onMounted, onUnmounted } from 'vue'
+  import { onMounted } from 'vue'
   import { RouterView } from 'vue-router'
   import { useUserContext } from '@/src/composables/useUserContext'
   import ConnectWalletModal from '@/src/components/ConnectWalletModal.vue'
   import Sidebar from '@/src/components/Sidebar.vue'
 
-  const { isLoggedIn, isFirebaseReady, isLoading, initialize, cleanup } =
+  const { isLoggedIn, isFirebaseReady, isLoading, initialize } =
     useUserContext()
 
   onMounted(() => {
     initialize()
-  })
-
-  onUnmounted(() => {
-    cleanup()
   })
 </script>
 

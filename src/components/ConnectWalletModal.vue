@@ -65,7 +65,7 @@
       if (!window.phantom?.ethereum) {
         errorMessage.value =
           'Phantom wallet is not installed. Please install it first.'
-        window.open('https://phantom.app/download', '_blank')
+
         return
       }
 

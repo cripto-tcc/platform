@@ -80,71 +80,130 @@ export class WalletService {
     const ethersProvider = new ethers.BrowserProvider(provider)
     const signer = await ethersProvider.getSigner()
 
+    const tokenContractAddress = this.getTokenContractAddress(transactionData)
+    const isSwap = this.isSwapTransaction(transactionData)
+
+    if (isSwap) {
+      return await this.executeERC20SwapTransaction(
+        transactionData,
+        provider,
+        signer
+      )
+    } else {
+      return await this.executeERC20TransferTransaction(
+        transactionData,
+        signer,
+        tokenContractAddress
+      )
+    }
+  }
+
+  private static getTokenContractAddress(
+    transactionData: TransactionData
+  ): string {
     const tokenContractAddress =
       transactionData.transactionRequest.fromTokenInfo?.contract
-
     if (!tokenContractAddress) {
       throw new Error('Token contract address not found in fromTokenInfo')
     }
+    return tokenContractAddress
+  }
 
-    const isSwap = !!transactionData.transactionRequest.data
-    if (isSwap) {
-      const transaction = {
+  private static isSwapTransaction(transactionData: TransactionData): boolean {
+    return !!transactionData.transactionRequest.data
+  }
+
+  private static async executeERC20SwapTransaction(
+    transactionData: TransactionData,
+    provider: any,
+    signer: ethers.Signer
+  ): Promise<string> {
+    const transaction = this.buildSwapTransaction(transactionData)
+    console.log('ERC20 token transaction:', transaction)
+
+    if (transactionData.estimate.approvalAddress) {
+      await this.approveTokenForSwap(transactionData, signer)
+    }
+
+    return await this.sendRawTransaction(provider, transaction)
+  }
+
+  private static buildSwapTransaction(transactionData: TransactionData) {
+    return {
+      gasLimit: transactionData.transactionRequest.gasLimit,
+      gasPrice: transactionData.transactionRequest.gasPrice,
+      to: transactionData.transactionRequest.to,
+      from: transactionData.transactionRequest.from,
+      value: transactionData.transactionRequest.value,
+      data: transactionData.transactionRequest.data,
+    }
+  }
+
+  private static async approveTokenForSwap(
+    transactionData: TransactionData,
+    signer: ethers.Signer
+  ): Promise<void> {
+    const tokenContract = new ethers.Contract(
+      transactionData.transactionRequest.fromTokenInfo?.contract as string,
+      ERC20_ABI,
+      signer
+    )
+
+    await tokenContract.approve(
+      transactionData.estimate.approvalAddress,
+      BigInt(transactionData.estimate.fromAmount),
+      {
         gasLimit: transactionData.transactionRequest.gasLimit,
         gasPrice: transactionData.transactionRequest.gasPrice,
-        to: transactionData.transactionRequest.to,
-        from: transactionData.transactionRequest.from,
-        value: transactionData.transactionRequest.value,
-        data: transactionData.transactionRequest.data,
       }
+    )
+  }
 
-      console.log('ERC20 token transaction:', transaction)
+  private static async executeERC20TransferTransaction(
+    transactionData: TransactionData,
+    signer: ethers.Signer,
+    tokenContractAddress: string
+  ): Promise<string> {
+    const { recipient, amount } = this.validateTransferData(transactionData)
+    const tokenContract = this.createTokenContract(tokenContractAddress, signer)
 
-      if (transactionData.estimate.approvalAddress) {
-        const tokenContract = new ethers.Contract(
-          transactionData.transactionRequest.fromTokenInfo?.contract as string,
-          ERC20_ABI,
-          signer
-        )
+    const tx = await tokenContract.transfer(recipient, amount, {
+      gasLimit: ethers.getBigInt(transactionData.transactionRequest.gasLimit),
+      gasPrice: ethers.getBigInt(transactionData.transactionRequest.gasPrice),
+    })
 
-        await tokenContract.approve(
-          transactionData.estimate.approvalAddress,
-          BigInt(transactionData.estimate.fromAmount),
-          {
-            gasLimit: transactionData.transactionRequest.gasLimit,
-            gasPrice: transactionData.transactionRequest.gasPrice,
-          }
-        )
-      }
+    return tx.hash
+  }
 
-      const txHash = await provider.request({
-        method: 'eth_sendTransaction',
-        params: [transaction],
-      })
+  private static validateTransferData(transactionData: TransactionData) {
+    const recipient = transactionData.transactionRequest.to
+    const amountHex = transactionData.transactionRequest.value
 
-      return txHash
-    } else {
-      const recipient = transactionData.transactionRequest.to
-      const amountHex = transactionData.transactionRequest.value
-
-      if (!recipient || !amountHex) {
-        throw new Error('Recipient or amount not provided for ERC20 transfer')
-      }
-
-      const amount = ethers.getBigInt(amountHex)
-
-      const tokenContract = new ethers.Contract(
-        tokenContractAddress,
-        ERC20_ABI,
-        signer
-      )
-
-      const tx = await tokenContract.transfer(recipient, amount, {
-        gasLimit: ethers.getBigInt(transactionData.transactionRequest.gasLimit),
-        gasPrice: ethers.getBigInt(transactionData.transactionRequest.gasPrice),
-      })
-
-      return tx.hash
+    if (!recipient || !amountHex) {
+      throw new Error('Recipient or amount not provided for ERC20 transfer')
     }
+
+    return {
+      recipient,
+      amount: ethers.getBigInt(amountHex),
+    }
+  }
+
+  private static createTokenContract(
+    tokenContractAddress: string,
+    signer: ethers.Signer
+  ) {
+    return new ethers.Contract(tokenContractAddress, ERC20_ABI, signer)
+  }
+
+  private static async sendRawTransaction(
+    provider: any,
+    transaction: any
+  ): Promise<string> {
+    const txHash = await provider.request({
+      method: 'eth_sendTransaction',
+      params: [transaction],
+    })
+    return txHash
   }
 }

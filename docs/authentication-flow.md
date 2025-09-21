@@ -4,21 +4,37 @@
 
 Este sistema utiliza **Firebase Authentication** com **login anônimo** para gerenciar sessões de usuários, onde a **carteira blockchain (Phantom)** serve como identificador único do usuário.
 
-## Diagrama do Fluxo
+## Arquitetura do Sistema
 
 ```mermaid
 graph TB
-    A[Usuário Acessa] --> B[Verifica Conexão]
-    B --> C{Sessão Ativa?}
-    C -->|Sim| D[Restaura Sessão]
-    C -->|Não| E[Conecta Carteira]
-    E --> F[Obtém Endereço]
-    F --> G[Cria Sessão Anônima]
-    G --> H[Usuário Autenticado]
-    D --> H
-    H --> I[Logout]
-    I --> J[Limpa Sessão]
-    J --> A
+    subgraph "Front-end (Vue.js)"
+        A[App.vue] --> B[useUserContext]
+        B --> C[ConnectWalletModal]
+        C --> D[Sidebar]
+        E[WalletView] --> F[WalletService]
+        G[ChatView] --> H[OpenAIService]
+    end
+
+    subgraph "Back-end (Firebase)"
+        I[Firebase Auth] --> J[Anonymous Session]
+        K[Firebase Config] --> L[Environment Variables]
+    end
+
+    subgraph "Blockchain"
+        M[Phantom Wallet] --> N[Ethereum Provider]
+        O[Network Service] --> P[Chain Configuration]
+    end
+
+    subgraph "External APIs"
+        Q[Moralis API] --> R[Blockchain Data]
+        S[OpenAI API] --> T[AI Chat]
+    end
+
+    B --> I
+    F --> M
+    H --> S
+    O --> Q
 ```
 
 ## Papel da Carteira do Usuário

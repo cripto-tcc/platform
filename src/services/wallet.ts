@@ -149,9 +149,17 @@ export class WalletService {
       signer
     )
 
+    // Convert decimal amount to proper units considering token decimals
+    const decimals =
+      transactionData.transactionRequest.fromTokenInfo?.decimals || 18
+    const amountInWei = ethers.parseUnits(
+      transactionData.estimate.fromAmount.toString(),
+      decimals
+    )
+
     await tokenContract.approve(
       transactionData.estimate.approvalAddress,
-      BigInt(transactionData.estimate.fromAmount),
+      amountInWei,
       {
         gasLimit: transactionData.transactionRequest.gasLimit,
         gasPrice: transactionData.transactionRequest.gasPrice,

@@ -33,27 +33,42 @@
           <div
             v-if="message.pendingTransaction"
             class="action-buttons"
-            :class="{ cancelled: message.cancelled }"
+            :class="{
+              cancelled: message.cancelled,
+              completed: message.completed,
+            }"
           >
             <button
               @click="confirmTransaction(message.pendingTransaction)"
               class="confirm-btn"
-              :disabled="isTransactionLoading || message.cancelled"
+              :disabled="
+                isTransactionLoading || message.cancelled || message.completed
+              "
             >
               {{
                 isTransactionLoading
                   ? 'LOADING...'
                   : message.cancelled
                     ? 'DECLINED'
-                    : 'CONFIRM'
+                    : message.completed
+                      ? 'COMPLETED'
+                      : 'CONFIRM'
               }}
             </button>
             <button
               @click="cancelTransaction(index)"
               class="cancel-btn"
-              :disabled="isTransactionLoading || message.cancelled"
+              :disabled="
+                isTransactionLoading || message.cancelled || message.completed
+              "
             >
-              {{ message.cancelled ? 'DECLINED' : 'CANCEL' }}
+              {{
+                message.cancelled
+                  ? 'DECLINED'
+                  : message.completed
+                    ? 'COMPLETED'
+                    : 'CANCEL'
+              }}
             </button>
           </div>
         </div>
@@ -93,6 +108,7 @@
   import { ref, onMounted } from 'vue'
   import {
     getChatCompletion,
+    trackAction,
     type Message,
     type TransactionData,
   } from '@/src/services/backend'
@@ -104,6 +120,8 @@
     timestamp: Date
     pendingTransaction?: TransactionData
     cancelled?: boolean
+    completed?: boolean
+    messageId?: number
   }
 
   const userInput = ref('')
@@ -181,6 +199,10 @@
           assistantMessage.pendingTransaction = transaction
           messages.value = [...messages.value]
           scrollToBottom()
+        },
+        messageId => {
+          assistantMessage.messageId = messageId
+          messages.value = [...messages.value]
         }
       )
     } catch (error) {
@@ -196,10 +218,43 @@
     try {
       isTransactionLoading.value = true
 
+      // Find the message with this transaction to get the messageId
+      const messageWithTransaction = messages.value.find(
+        msg => msg.pendingTransaction === transaction
+      )
+
+      // Track action clicked
+      if (messageWithTransaction?.messageId) {
+        try {
+          await trackAction(messageWithTransaction.messageId, {
+            action_clicked: true,
+          })
+        } catch (trackingError) {
+          console.error('Error tracking confirm action:', trackingError)
+        }
+      }
+
       const txHash = await WalletService.sendTransaction(
         transaction,
         activeNetwork.value
       )
+
+      // Track action successful
+      if (messageWithTransaction?.messageId) {
+        try {
+          await trackAction(messageWithTransaction.messageId, {
+            action_successful: true,
+          })
+        } catch (trackingError) {
+          console.error('Error tracking success:', trackingError)
+        }
+      }
+
+      // Mark transaction as completed
+      if (messageWithTransaction) {
+        messageWithTransaction.completed = true
+        messages.value = [...messages.value]
+      }
 
       const successMessage: ChatMessage = {
         role: 'assistant',
@@ -211,6 +266,24 @@
       scrollToBottom()
     } catch (error) {
       console.error('Error confirming transaction:', error)
+
+      // Find the message with this transaction to get the messageId
+      const messageWithTransaction = messages.value.find(
+        msg => msg.pendingTransaction === transaction
+      )
+
+      // Track action failed
+      if (messageWithTransaction?.messageId) {
+        try {
+          await trackAction(messageWithTransaction.messageId, {
+            action_successful: false,
+            error_message:
+              error instanceof Error ? error.message : 'Unknown error',
+          })
+        } catch (trackingError) {
+          console.error('Error tracking failure:', trackingError)
+        }
+      }
 
       const errorMessage: ChatMessage = {
         role: 'assistant',
@@ -225,10 +298,23 @@
     }
   }
 
-  const cancelTransaction = (messageIndex: number) => {
+  const cancelTransaction = async (messageIndex: number) => {
     if (messages.value[messageIndex]) {
-      messages.value[messageIndex].cancelled = true
+      const message = messages.value[messageIndex]
+      message.cancelled = true
       messages.value = [...messages.value]
+
+      // Track action clicked
+      if (message.messageId) {
+        try {
+          await trackAction(message.messageId, {
+            action_clicked: true,
+            error_message: 'User declined (frontend)',
+          })
+        } catch (trackingError) {
+          console.error('Error tracking decline action:', trackingError)
+        }
+      }
     }
   }
 
@@ -423,6 +509,23 @@
         &:hover {
           background: rgba(255, 255, 255, 0.1);
           color: rgba(255, 255, 255, 0.5);
+        }
+      }
+    }
+
+    &.completed {
+      opacity: 0.8;
+
+      .confirm-btn,
+      .cancel-btn {
+        background: rgba(34, 197, 94, 0.2);
+        color: rgba(34, 197, 94, 0.8);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+        cursor: not-allowed;
+
+        &:hover {
+          background: rgba(34, 197, 94, 0.2);
+          color: rgba(34, 197, 94, 0.8);
         }
       }
     }

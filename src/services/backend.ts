@@ -52,10 +52,43 @@ export interface TransactionMessage {
   data: TransactionData
 }
 
+export interface TrackingMessage {
+  type: 'tracking'
+  message_id: number
+}
+
+export interface TrackingData {
+  action_clicked?: boolean
+  action_successful?: boolean
+  error_message?: string
+}
+
+export async function trackAction(messageId: number, data: TrackingData) {
+  try {
+    const response = await fetch(`${API_URL}/track/${messageId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    })
+
+    if (!response.ok) {
+      throw new Error(`Tracking failed: ${response.statusText}`)
+    }
+
+    return await response.json()
+  } catch (error) {
+    console.error('Error tracking action:', error)
+    throw error
+  }
+}
+
 export async function getChatCompletion(
   request: ChatRequest,
   onChunk: (chunk: string) => void,
-  onTransaction?: (transaction: TransactionData) => void
+  onTransaction?: (transaction: TransactionData) => void,
+  onMessageId?: (messageId: number) => void
 ) {
   try {
     const response = await fetch(`${API_URL}/process`, {
@@ -88,8 +121,16 @@ export async function getChatCompletion(
           try {
             const parsed = JSON.parse(data)
 
+            // Check if it's a tracking message with message_id
+            if (
+              parsed.type === 'tracking' &&
+              parsed.message_id &&
+              onMessageId
+            ) {
+              onMessageId(parsed.message_id)
+            }
             // Check if it's a transaction message
-            if (parsed.type === 'transaction' && onTransaction) {
+            else if (parsed.type === 'transaction' && onTransaction) {
               onTransaction(parsed.data)
             } else if (parsed.content) {
               onChunk(parsed.content)

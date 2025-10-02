@@ -84,6 +84,120 @@ export async function trackAction(messageId: number, data: TrackingData) {
   }
 }
 
+export async function humanizeError(
+  errorMessage: string,
+  language: string = 'pt'
+): Promise<string> {
+  try {
+    const response = await fetch(`${API_URL}/humanize-error`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        error_message: errorMessage,
+        language: language
+      }),
+    })
+
+    const reader = response.body?.getReader()
+    const decoder = new TextDecoder()
+    let humanizedError = ''
+
+    if (!reader) throw new Error('No reader available')
+
+    while (true) {
+      const { value, done } = await reader.read()
+      if (done) break
+
+      const chunk = decoder.decode(value)
+      const lines = chunk.split('\n')
+
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6)
+          if (data === '[DONE]') {
+            break
+          }
+
+          try {
+            const parsed = JSON.parse(data)
+            if (parsed.content) {
+              humanizedError += parsed.content
+            }
+          } catch (e) {
+            console.error('Error parsing humanize error chunk:', e)
+          }
+        }
+      }
+    }
+
+    return humanizedError.trim() || errorMessage // Fallback para erro original se não conseguir humanizar
+
+  } catch (error) {
+    console.error('Error humanizing error:', error)
+    return errorMessage // Fallback para erro original
+  }
+}
+
+export async function humanizeSuccess(
+  transactionHash: string,
+  transactionType: string = 'transaction',
+  language: string = 'pt'
+): Promise<string> {
+  try {
+    const response = await fetch(`${API_URL}/humanize-success`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        transaction_hash: transactionHash,
+        transaction_type: transactionType,
+        language: language
+      }),
+    })
+
+    const reader = response.body?.getReader()
+    const decoder = new TextDecoder()
+    let humanizedSuccess = ''
+
+    if (!reader) throw new Error('No reader available')
+
+    while (true) {
+      const { value, done } = await reader.read()
+      if (done) break
+
+      const chunk = decoder.decode(value)
+      const lines = chunk.split('\n')
+
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6)
+          if (data === '[DONE]') {
+            break
+          }
+
+          try {
+            const parsed = JSON.parse(data)
+            if (parsed.content) {
+              humanizedSuccess += parsed.content
+            }
+          } catch (e) {
+            console.error('Error parsing humanize success chunk:', e)
+          }
+        }
+      }
+    }
+
+    return humanizedSuccess.trim() || `✅ Transação enviada com sucesso! Hash: ${transactionHash}` // Fallback
+
+  } catch (error) {
+    console.error('Error humanizing success:', error)
+    return `✅ Transação enviada com sucesso! Hash: ${transactionHash}` // Fallback
+  }
+}
+
 export async function getChatCompletion(
   request: ChatRequest,
   onChunk: (chunk: string) => void,

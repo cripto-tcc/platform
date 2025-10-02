@@ -109,6 +109,8 @@
   import {
     getChatCompletion,
     trackAction,
+    humanizeError,
+    humanizeSuccess,
     type Message,
     type TransactionData,
   } from '@/src/services/backend'
@@ -149,6 +151,26 @@
           messagesContainer.value!.scrollHeight
       }, 100)
     }
+  }
+
+  // Função simples para detectar idioma baseado em palavras comuns
+  const detectLanguageSimple = (text: string): string => {
+    const lowerText = text.toLowerCase()
+    
+    // Palavras indicativas de português
+    const ptWords = ['quero', 'trocar', 'transferir', 'para', 'quanto', 'vale', 'como', 'fazer', 'enviar']
+    // Palavras indicativas de inglês
+    const enWords = ['want', 'swap', 'transfer', 'send', 'how', 'much', 'what', 'make', 'to']
+    // Palavras indicativas de espanhol
+    const esWords = ['quiero', 'cambiar', 'transferir', 'para', 'cuánto', 'vale', 'cómo', 'hacer', 'enviar']
+    
+    const ptScore = ptWords.filter(word => lowerText.includes(word)).length
+    const enScore = enWords.filter(word => lowerText.includes(word)).length
+    const esScore = esWords.filter(word => lowerText.includes(word)).length
+    
+    if (enScore > ptScore && enScore > esScore) return 'en'
+    if (esScore > ptScore && esScore > enScore) return 'es'
+    return 'pt' // Default para português
   }
 
   const formatMessageContent = (content: string) => {
@@ -256,9 +278,23 @@
         messages.value = [...messages.value]
       }
 
+      // Detecta idioma baseado nas mensagens recentes do usuário
+      const recentUserMessages = messages.value
+        .filter(m => m.role === 'user')
+        .slice(-3) // Pega as 3 mensagens mais recentes
+        .map(m => m.content)
+        .join(' ')
+      
+      // Detecta idioma simples baseado em palavras comuns
+      const detectedLanguage = detectLanguageSimple(recentUserMessages)
+      
+      // Humaniza a mensagem de sucesso
+      const transactionType = transaction.tool || 'transaction'
+      const humanizedSuccessContent = await humanizeSuccess(txHash, transactionType, detectedLanguage)
+
       const successMessage: ChatMessage = {
         role: 'assistant',
-        content: `✅ Transaction sent successfully!\n\nTransaction Hash: ${txHash}\n\nYou can track the transaction on the blockchain explorer.`,
+        content: humanizedSuccessContent,
         timestamp: new Date(),
       }
 
@@ -285,9 +321,20 @@
         }
       }
 
+      // Detecta idioma e humaniza o erro
+      const recentUserMessages = messages.value
+        .filter(m => m.role === 'user')
+        .slice(-3)
+        .map(m => m.content)
+        .join(' ')
+      
+      const detectedLanguage = detectLanguageSimple(recentUserMessages)
+      const rawError = error instanceof Error ? error.message : 'Unknown error'
+      const humanizedErrorContent = await humanizeError(rawError, detectedLanguage)
+
       const errorMessage: ChatMessage = {
         role: 'assistant',
-        content: `❌ Transaction failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        content: humanizedErrorContent,
         timestamp: new Date(),
       }
 

@@ -21,14 +21,14 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach((to, _from, next) => {
-  const { isLoggedIn } = useUserContext()
+router.beforeEach(async (_to, _from, next) => {
+  const { isFirebaseReady, initialize } = useUserContext()
 
-  if (to.meta.requiresAuth && !isLoggedIn.value) {
-    next()
-  } else {
-    next()
+  if (!isFirebaseReady.value) {
+    await initialize()
   }
+
+  next()
 })
 
 export default router

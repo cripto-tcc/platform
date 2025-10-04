@@ -13,8 +13,12 @@
     </v-overlay>
 
     <div v-else class="app">
-      <Sidebar />
-      <main v-if="isLoggedIn" class="main">
+      <Sidebar v-if="!isChatPage" />
+      <main
+        v-if="isLoggedIn"
+        class="main"
+        :class="{ 'main--full': isChatPage }"
+      >
         <RouterView />
       </main>
       <ConnectWalletModal v-else />
@@ -23,14 +27,17 @@
 </template>
 
 <script setup lang="ts">
-  import { onMounted } from 'vue'
-  import { RouterView } from 'vue-router'
+  import { onMounted, computed } from 'vue'
+  import { RouterView, useRoute } from 'vue-router'
   import { useUserContext } from '@/src/composables/useUserContext'
   import ConnectWalletModal from '@/src/components/ConnectWalletModal.vue'
   import Sidebar from '@/src/components/Sidebar.vue'
 
   const { isLoggedIn, isFirebaseReady, isLoading, initialize } =
     useUserContext()
+
+  const route = useRoute()
+  const isChatPage = computed(() => route.path === '/')
 
   onMounted(() => {
     initialize()
@@ -47,6 +54,10 @@
   .main {
     flex: 1;
     margin-left: 272px;
+
+    &--full {
+      margin-left: 0;
+    }
   }
 
   .loading-container {

@@ -1,103 +1,118 @@
 <template>
-  <div class="chat">
-    <div class="chat__content">
-      <div class="chat__header">
-        <span class="chat__address">Chat > {{ walletAddress }}</span>
-      </div>
+  <div class="chat-page">
+    <WalletSidebar />
 
-      <div class="chat__messages" ref="messagesContainer">
-        <div
-          v-for="(message, index) in messages"
-          :key="index"
-          class="message"
-          :class="message.role"
-        >
-          <div class="message__header">
-            <img
-              v-if="message.role === 'assistant'"
-              :src="logoIcon"
-              alt="Assistant"
-              class="message__icon"
-            />
-            <span class="message__role"
-              >{{ message.role === 'user' ? 'You' : 'Assistant' }} -
-              {{ formatTime(message.timestamp) }}</span
-            >
+    <div class="chat-main">
+      <ChatHeader />
+
+      <div class="chat">
+        <div class="chat__content">
+          <div class="chat__header">
+            <span class="chat__address">Chat > {{ walletAddress }}</span>
           </div>
-          <div
-            class="message__content"
-            v-html="formatMessageContent(message.content)"
-          ></div>
 
-          <!-- Transaction confirmation buttons -->
-          <div
-            v-if="message.pendingTransaction"
-            class="action-buttons"
-            :class="{
-              cancelled: message.cancelled,
-              completed: message.completed,
-            }"
-          >
-            <button
-              @click="confirmTransaction(message.pendingTransaction)"
-              class="confirm-btn"
-              :disabled="
-                isTransactionLoading || message.cancelled || message.completed
-              "
+          <div class="chat__messages" ref="messagesContainer">
+            <div
+              v-for="(message, index) in messages"
+              :key="index"
+              class="message"
+              :class="message.role"
             >
-              {{
-                isTransactionLoading
-                  ? 'LOADING...'
-                  : message.cancelled
-                    ? 'DECLINED'
-                    : message.completed
-                      ? 'COMPLETED'
-                      : 'CONFIRM'
-              }}
-            </button>
-            <button
-              @click="cancelTransaction(index)"
-              class="cancel-btn"
-              :disabled="
-                isTransactionLoading || message.cancelled || message.completed
-              "
+              <div class="message__header">
+                <img
+                  v-if="message.role === 'assistant'"
+                  :src="logoIcon"
+                  alt="Assistant"
+                  class="message__icon"
+                />
+                <span class="message__role"
+                  >{{ message.role === 'user' ? 'You' : 'Assistant' }} -
+                  {{ formatTime(message.timestamp) }}</span
+                >
+              </div>
+              <div
+                class="message__content"
+                v-html="formatMessageContent(message.content)"
+              ></div>
+
+              <!-- Transaction confirmation buttons -->
+              <div
+                v-if="message.pendingTransaction"
+                class="action-buttons"
+                :class="{
+                  cancelled: message.cancelled,
+                  completed: message.completed,
+                }"
+              >
+                <button
+                  @click="confirmTransaction(message.pendingTransaction)"
+                  class="confirm-btn"
+                  :disabled="
+                    isTransactionLoading ||
+                    message.cancelled ||
+                    message.completed
+                  "
+                >
+                  {{
+                    isTransactionLoading
+                      ? 'LOADING...'
+                      : message.cancelled
+                        ? 'DECLINED'
+                        : message.completed
+                          ? 'COMPLETED'
+                          : 'CONFIRM'
+                  }}
+                </button>
+                <button
+                  @click="cancelTransaction(index)"
+                  class="cancel-btn"
+                  :disabled="
+                    isTransactionLoading ||
+                    message.cancelled ||
+                    message.completed
+                  "
+                >
+                  {{
+                    message.cancelled
+                      ? 'DECLINED'
+                      : message.completed
+                        ? 'COMPLETED'
+                        : 'CANCEL'
+                  }}
+                </button>
+              </div>
+            </div>
+
+            <div
+              v-if="isLoading && !isTyping"
+              class="message assistant loading"
             >
-              {{
-                message.cancelled
-                  ? 'DECLINED'
-                  : message.completed
-                    ? 'COMPLETED'
-                    : 'CANCEL'
-              }}
-            </button>
+              <div class="loading-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </div>
           </div>
-        </div>
 
-        <div v-if="isLoading && !isTyping" class="message assistant loading">
-          <div class="loading-dots">
-            <span></span>
-            <span></span>
-            <span></span>
+          <div class="chat__input">
+            <div class="input-container">
+              <input
+                v-model="userInput"
+                type="text"
+                placeholder="Transfer funds, swap tokens, or check the latest exchange rates and fees?"
+                @keyup.enter="sendMessage"
+                :disabled="isLoading"
+              />
+              <button
+                class="input-icon send"
+                @click="sendMessage"
+                :disabled="isLoading"
+              >
+                Send
+              </button>
+            </div>
           </div>
-        </div>
-      </div>
-
-      <div class="chat__input">
-        <div class="input-container">
-          <input
-            v-model="userInput"
-            type="text"
-            placeholder="Transfer funds, swap tokens, or check the latest exchange rates and fees?"
-            @keyup.enter="sendMessage"
-            :disabled="isLoading"
-          />
-          <button
-            class="input-icon send"
-            @click="sendMessage"
-            :disabled="isLoading"
-          >
-            Send
-          </button>
         </div>
       </div>
     </div>
@@ -116,6 +131,8 @@
   import { useUserContext } from '@/src/composables/useUserContext'
   import { WalletService } from '@/src/services/wallet'
   import logoIcon from '@/src/assets/logo.svg'
+  import WalletSidebar from '@/src/components/WalletSidebar.vue'
+  import ChatHeader from '@/src/components/ChatHeader.vue'
 
   interface ChatMessage extends Message {
     timestamp: Date
@@ -334,10 +351,26 @@
 </script>
 
 <style lang="scss" scoped>
-  .chat {
+  .chat-page {
+    display: flex;
     height: 100vh;
     background-color: #0b0919;
     color: #fff;
+  }
+
+  .chat-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    width: calc(100vw - 280px);
+  }
+
+  .chat {
+    flex: 1;
+    background-color: #0b0919;
+    color: #fff;
+    overflow: hidden;
 
     &__content {
       max-width: 1024px;

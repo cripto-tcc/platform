@@ -109,8 +109,7 @@
   import {
     getChatCompletion,
     trackAction,
-    humanizeError,
-    humanizeSuccess,
+    getSuccessMessage,
     type Message,
     type TransactionData,
   } from '@/src/services/backend'
@@ -153,31 +152,13 @@
     }
   }
 
-  // Função simples para detectar idioma baseado em palavras comuns
-  const detectLanguageSimple = (text: string): string => {
-    const lowerText = text.toLowerCase()
-    
-    // Palavras indicativas de português
-    const ptWords = ['quero', 'trocar', 'transferir', 'para', 'quanto', 'vale', 'como', 'fazer', 'enviar']
-    // Palavras indicativas de inglês
-    const enWords = ['want', 'swap', 'transfer', 'send', 'how', 'much', 'what', 'make', 'to']
-    // Palavras indicativas de espanhol
-    const esWords = ['quiero', 'cambiar', 'transferir', 'para', 'cuánto', 'vale', 'cómo', 'hacer', 'enviar']
-    
-    const ptScore = ptWords.filter(word => lowerText.includes(word)).length
-    const enScore = enWords.filter(word => lowerText.includes(word)).length
-    const esScore = esWords.filter(word => lowerText.includes(word)).length
-    
-    if (enScore > ptScore && enScore > esScore) return 'en'
-    if (esScore > ptScore && esScore > enScore) return 'es'
-    return 'pt' // Default para português
-  }
-
   const formatMessageContent = (content: string) => {
-    return content.replace(
-      /\*\*(.*?)\*\*/g,
-      '<span class="bold-text">$1</span>'
-    )
+    return content
+      .replace(/\*\*(.*?)\*\*/g, '<span class="bold-text">$1</span>')
+      .replace(
+        /\[([^\]]+)\]\(([^)]+)\)/g,
+        '<a href="$2" target="_blank" rel="noopener noreferrer" class="explorer-link">$1</a>'
+      )
   }
 
   const sendMessage = async () => {
@@ -278,23 +259,12 @@
         messages.value = [...messages.value]
       }
 
-      // Detecta idioma baseado nas mensagens recentes do usuário
-      const recentUserMessages = messages.value
-        .filter(m => m.role === 'user')
-        .slice(-3) // Pega as 3 mensagens mais recentes
-        .map(m => m.content)
-        .join(' ')
-      
-      // Detecta idioma simples baseado em palavras comuns
-      const detectedLanguage = detectLanguageSimple(recentUserMessages)
-      
-      // Humaniza a mensagem de sucesso
-      const transactionType = transaction.tool || 'transaction'
-      const humanizedSuccessContent = await humanizeSuccess(txHash, transactionType, detectedLanguage)
+      // Gera mensagem de sucesso genérica
+      const successContent = getSuccessMessage(txHash, activeNetwork.value.id)
 
       const successMessage: ChatMessage = {
         role: 'assistant',
-        content: humanizedSuccessContent,
+        content: successContent,
         timestamp: new Date(),
       }
 
@@ -321,20 +291,13 @@
         }
       }
 
-      // Detecta idioma e humaniza o erro
-      const recentUserMessages = messages.value
-        .filter(m => m.role === 'user')
-        .slice(-3)
-        .map(m => m.content)
-        .join(' ')
-      
-      const detectedLanguage = detectLanguageSimple(recentUserMessages)
+      // Gera mensagem de erro genérica
       const rawError = error instanceof Error ? error.message : 'Unknown error'
-      const humanizedErrorContent = await humanizeError(rawError, detectedLanguage)
+      const errorContent = `❌ Transaction failed: ${rawError}`
 
       const errorMessage: ChatMessage = {
         role: 'assistant',
-        content: humanizedErrorContent,
+        content: errorContent,
         timestamp: new Date(),
       }
 
@@ -528,6 +491,19 @@
       :deep(.bold-text) {
         color: #8247e5;
         font-weight: 600;
+      }
+
+      :deep(.explorer-link) {
+        color: #8247e5;
+        text-decoration: none;
+        font-weight: 500;
+        border-bottom: 1px solid #8247e5;
+        transition: all 0.2s ease;
+
+        &:hover {
+          color: #6b2db3;
+          border-bottom-color: #6b2db3;
+        }
       }
     }
 

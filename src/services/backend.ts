@@ -1,5 +1,22 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
 
+const EXPLORER_URLS = {
+  eth: 'https://etherscan.io/tx',
+  polygon: 'https://polygonscan.com/tx',
+  base: 'https://basescan.org/tx',
+} as const
+
+export function getExplorerUrl(
+  chainId: string,
+  transactionHash: string
+): string {
+  const explorerBase = EXPLORER_URLS[chainId as keyof typeof EXPLORER_URLS]
+  if (!explorerBase) {
+    return `https://etherscan.io/tx/${transactionHash}`
+  }
+  return `${explorerBase}/${transactionHash}`
+}
+
 export interface Message {
   role: 'user' | 'assistant' | 'system'
   content: string
@@ -96,7 +113,7 @@ export async function humanizeError(
       },
       body: JSON.stringify({
         error_message: errorMessage,
-        language: language
+        language: language,
       }),
     })
 
@@ -133,69 +150,18 @@ export async function humanizeError(
     }
 
     return humanizedError.trim() || errorMessage // Fallback para erro original se não conseguir humanizar
-
   } catch (error) {
     console.error('Error humanizing error:', error)
     return errorMessage // Fallback para erro original
   }
 }
 
-export async function humanizeSuccess(
+export function getSuccessMessage(
   transactionHash: string,
-  transactionType: string = 'transaction',
-  language: string = 'pt'
-): Promise<string> {
-  try {
-    const response = await fetch(`${API_URL}/humanize-success`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        transaction_hash: transactionHash,
-        transaction_type: transactionType,
-        language: language
-      }),
-    })
-
-    const reader = response.body?.getReader()
-    const decoder = new TextDecoder()
-    let humanizedSuccess = ''
-
-    if (!reader) throw new Error('No reader available')
-
-    while (true) {
-      const { value, done } = await reader.read()
-      if (done) break
-
-      const chunk = decoder.decode(value)
-      const lines = chunk.split('\n')
-
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const data = line.slice(6)
-          if (data === '[DONE]') {
-            break
-          }
-
-          try {
-            const parsed = JSON.parse(data)
-            if (parsed.content) {
-              humanizedSuccess += parsed.content
-            }
-          } catch (e) {
-            console.error('Error parsing humanize success chunk:', e)
-          }
-        }
-      }
-    }
-
-    return humanizedSuccess.trim() || `✅ Transação enviada com sucesso! Hash: ${transactionHash}` // Fallback
-
-  } catch (error) {
-    console.error('Error humanizing success:', error)
-    return `✅ Transação enviada com sucesso! Hash: ${transactionHash}` // Fallback
-  }
+  chainId: string = 'eth'
+): string {
+  const explorerUrl = getExplorerUrl(chainId, transactionHash)
+  return `✅ ${chainId.toUpperCase()} SCAN:  [${transactionHash}](${explorerUrl})`
 }
 
 export async function getChatCompletion(

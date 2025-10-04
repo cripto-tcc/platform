@@ -24,6 +24,8 @@ const router = createRouter({
 router.beforeEach(async (_to, _from, next) => {
   const { isFirebaseReady, initialize } = useUserContext()
 
+  console.log('isFirebaseReady', isFirebaseReady.value)
+
   if (!isFirebaseReady.value) {
     await initialize()
   }

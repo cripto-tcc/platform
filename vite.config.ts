@@ -10,4 +10,14 @@ export default defineConfig({
       '@': path.resolve(__dirname, './'),
     },
   },
+  server: {
+    open: true,
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: undefined,
+      },
+    },
+  },
 })

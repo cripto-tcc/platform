@@ -70,12 +70,29 @@ export function useUserContext() {
     })
   }
 
+  const setupPhantomAccountWatcher = () => {
+    if (!window.phantom?.ethereum) {
+      return
+    }
+
+    const provider = window.phantom.ethereum
+
+    provider.on('accountsChanged', (accounts: string[]) => {
+      if (!accounts || accounts.length === 0 || !accounts[0]) {
+        logout()
+      } else if (accounts[0] !== walletAddress.value) {
+        logout()
+      }
+    })
+  }
+
   const initialize = async () => {
     try {
       isLoading.value = true
 
       await restoreSavedNetwork()
       await setupAuthState()
+      setupPhantomAccountWatcher()
     } catch (error) {
       console.error('Error initializing Firebase:', error)
       isFirebaseReady.value = false

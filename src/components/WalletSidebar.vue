@@ -113,7 +113,7 @@
 <script setup lang="ts">
   import { ref, computed, onMounted, watch } from 'vue'
   import { useUserContext } from '@/src/composables/useUserContext'
-  import { MoralisService } from '@/src/services/moralis'
+  import { getWalletTokens, getWalletHistory } from '@/src/services/backend'
   import { Token, Transaction } from '@/src/types/moralis'
 
   const { walletAddress, activeNetwork } = useUserContext()
@@ -219,7 +219,7 @@
 
     try {
       isLoadingAssets.value = true
-      const response = await MoralisService.getWalletTokens(
+      const response = await getWalletTokens(
         walletAddress.value,
         activeNetwork.value.id
       )
@@ -236,7 +236,7 @@
 
     try {
       isLoadingTransactions.value = true
-      const response = await MoralisService.getWalletHistory(
+      const response = await getWalletHistory(
         walletAddress.value,
         activeNetwork.value.id
       )

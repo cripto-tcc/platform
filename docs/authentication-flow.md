@@ -27,7 +27,7 @@ graph TB
     end
 
     subgraph "External APIs"
-        Q[Moralis API] --> R[Blockchain Data]
+        Q[Backend API] --> R[Blockchain Data]
         S[OpenAI API] --> T[AI Chat]
     end
 

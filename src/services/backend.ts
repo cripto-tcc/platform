@@ -1,3 +1,5 @@
+import type { TokenResponse, TransactionResponse } from '../types/moralis'
+
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
 
 const EXPLORER_URLS = {
@@ -223,6 +225,78 @@ export async function getChatCompletion(
     }
   } catch (error) {
     console.error('Error getting chat completion:', error)
+    throw error
+  }
+}
+
+export async function getWalletTokens(
+  walletAddress: string,
+  chain: string
+): Promise<TokenResponse> {
+  try {
+    const response = await fetch(
+      `${API_URL}/wallets/${walletAddress}/tokens?chain=${chain}`,
+      {
+        headers: {
+          Accept: 'application/json',
+        },
+      }
+    )
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch wallet tokens: ${response.statusText}`)
+    }
+
+    const data = await response.json()
+
+    // Filter tokens with value > 0.01 (same as before)
+    if (data.result) {
+      data.result = data.result.filter((token: any) => token.usd_value > 0.01)
+    }
+
+    return data
+  } catch (error) {
+    console.error('Error fetching wallet tokens:', error)
+    throw error
+  }
+}
+
+export async function getWalletHistory(
+  walletAddress: string,
+  chain: string,
+  limit: number = 5
+): Promise<TransactionResponse> {
+  try {
+    const response = await fetch(
+      `${API_URL}/wallets/${walletAddress}/history?chain=${chain}&limit=${limit}`,
+      {
+        headers: {
+          Accept: 'application/json',
+        },
+      }
+    )
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch wallet history: ${response.statusText}`)
+    }
+
+    const data = await response.json()
+
+    // Filter verified contracts and non-spam (same as before)
+    if (data.result) {
+      data.result = data.result.map((transaction: any) => ({
+        ...transaction,
+        erc20_transfers:
+          transaction.erc20_transfers?.filter(
+            (transfer: any) =>
+              transfer.verified_contract && !transfer.possible_spam
+          ) || [],
+      }))
+    }
+
+    return data
+  } catch (error) {
+    console.error('Error fetching wallet history:', error)
     throw error
   }
 }

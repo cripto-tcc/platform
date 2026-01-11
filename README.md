@@ -1,3 +1,6 @@
+<img width="1200" height="1200" alt="image" src="https://github.com/user-attachments/assets/4269c94f-f992-44f6-8ef1-64ccc9dcec8f" />
+
+
 ## 🚀 Como Rodar
 
 ### Pré-requisitos
